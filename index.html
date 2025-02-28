@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplineers AI Defender</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>Simplineers AI Defender</h1>
+        </div>
+    </header>
+    
+    <main>
+        <div id="game-container"></div>
+        
+        <div id="instructions">
+            <h2>Instruktioner</h2>
+            <p>Använd piltangenterna för att röra dig ⬅️ ➡️</p>
+            <p>Tryck på mellanslag eller klicka för att skjuta 🔫</p>
+            <p>Samla power-ups och försvara dig mot AI-hot!</p>
+        </div>
+
+        <div id="highscore-form" class="hidden">
+            <h2>Nytt Highscore!</h2>
+            <form id="score-form">
+                <div class="form-group">
+                    <label for="player-name">Namn:</label>
+                    <input type="text" id="player-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="player-email">E-post:</label>
+                    <input type="email" id="player-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="consent" name="consent" required>
+                    <label for="consent">Jag samtycker till att mina uppgifter används för att kontakta mig om Simplineers AI-utbildningar.</label>
+                </div>
+                <button type="submit">Skicka in poäng</button>
+            </form>
+        </div>
+
+        <div id="highscore-list">
+            <h2>Topplista</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Namn</th>
+                        <th>Poäng</th>
+                    </tr>
+                </thead>
+                <tbody id="highscore-table">
+                    <!-- Poäng kommer att fyllas på via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="simplineers-info">
+            <h2>Om Simplineers</h2>
+            <p>Vi erbjuder skräddarsydda AI-utbildningar för företag. Lär dig utnyttja AI-teknologi för att förbättra ditt företags produktivitet och innovation.</p>
+            <a href="https://simplineers.com" class="cta-button">Läs mer om våra tjänster</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Simplineers. Alla rättigheter förbehållna.</p>
+    </footer>
+
+    <!-- Spelets script -->    
+    <script src="js/entities/player.js"></script>
+    <script src="js/entities/enemies.js"></script>
+    <script src="js/entities/powerups.js"></script>
+    <script src="js/scenes/bootScene.js"></script>
+    <script src="js/scenes/menuScene.js"></script>
+    <script src="js/scenes/gameScene.js"></script>
+    <script src="js/scenes/uiScene.js"></script>
+    <script src="js/highscore.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
