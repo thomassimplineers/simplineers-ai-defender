@@ -74,9 +74,9 @@ function displayHighscores(highscores) {
 }
 
 // Funktion för att spara highscore
-async function saveHighscore(name, email, score) {
+async function saveHighscore(name, email, score, company) {
     try {
-        console.log('Sparar highscore:', { name, email, score });
+        console.log('Sparar highscore:', { name, email, company, score });
         
         // Kontrollera vilka kolumner som finns i highscores-tabellen
         const { data: existingData, error: fetchError } = await supabase
@@ -93,6 +93,7 @@ async function saveHighscore(name, email, score) {
         const scoreData = { 
             name: name, 
             email: email, 
+            company: company || null,
             score: score  // Detta är en score, inte en lead
         };
         
@@ -129,63 +130,70 @@ async function saveHighscore(name, email, score) {
 // Funktion för att hantera highscore-formulär
 function setupHighscoreForm() {
     const scoreForm = document.getElementById('score-form');
-    if (!scoreForm) return;
     
-    scoreForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const nameInput = document.getElementById('player-name');
-        const emailInput = document.getElementById('player-email');
-        const scoreInput = document.getElementById('player-score');
-        
-        if (!nameInput || !emailInput || !scoreInput) {
-            console.error('Missing form inputs');
-            return;
-        }
-        
-        const name = nameInput.value;
-        const email = emailInput.value;
-        const score = parseInt(scoreInput.value);
-        
-        if (!name || !email || isNaN(score)) {
-            alert('Vänligen fyll i alla fält korrekt');
-            return;
-        }
-        
-        const submitButton = scoreForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Sparar...';
-        
-        try {
-            const result = await saveHighscore(name, email, score);
+    if (scoreForm) {
+        scoreForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            if (result.success) {
-                // Visa bekräftelse
-                alert('Din poäng har sparats!');
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.textContent = 'Sparar...';
+            submitButton.disabled = true;
+            
+            const playerName = document.getElementById('player-name').value;
+            const playerEmail = document.getElementById('player-email').value;
+            const playerCompany = document.getElementById('player-company').value;
+            const playerScore = parseInt(document.getElementById('player-score').value);
+            
+            try {
+                console.log("Försöker spara highscore:", {
+                    name: playerName,
+                    email: playerEmail,
+                    company: playerCompany,
+                    score: playerScore
+                });
                 
-                // Återställ formuläret
-                scoreForm.reset();
+                // Skapa basdata utan company-fältet
+                const scoreData = { 
+                    name: playerName, 
+                    email: playerEmail,
+                    score: playerScore 
+                };
                 
-                // Uppdatera highscorelistan
-                loadHighscores();
+                // Kolla först om company-kolumnen finns genom att hämta schema-info
+                const { data: columnInfo, error: schemaError } = await supabase
+                    .from('highscores')
+                    .select('*')
+                    .limit(1);
                 
-                // Stäng modalen om den finns
-                const modal = document.getElementById('highscore-modal');
-                if (modal) {
-                    modal.style.display = 'none';
+                // Om vi kunde hämta ett exempel och första raden har en company-property
+                if (!schemaError && columnInfo && columnInfo.length > 0 && 'company' in columnInfo[0]) {
+                    // Lägg bara till company om kolumnen faktiskt finns
+                    scoreData.company = playerCompany;
                 }
-            } else {
-                alert('Ett fel uppstod. Försök igen senare.');
+                
+                // Spara till Supabase med filtrerade data
+                const { data, error } = await supabase
+                    .from('highscores')
+                    .insert([scoreData]);
+                
+                if (error) throw error;
+                
+                console.log("Highscore sparad:", data);
+                
+                // Visa bekräftelse och stäng formuläret
+                alert('Poäng sparad! Tack för att du spelade.');
+                document.getElementById('highscore-modal').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Fel vid sparande av poäng:', error);
+                alert(`Något gick fel: ${error.message || 'Okänt fel'}. Försök igen senare.`);
+            } finally {
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
             }
-        } catch (e) {
-            console.error('Error in highscore submission:', e);
-            alert('Ett tekniskt fel uppstod. Försök igen senare.');
-        } finally {
-            // Återställ knappen
-            submitButton.disabled = false;
-            submitButton.textContent = 'Spara poäng';
-        }
-    });
+        });
+    }
 }
 
 // Initiera highscore-funktioner när sidan laddas
@@ -205,6 +213,7 @@ async function submitScore(event) {
     const form = event.target;
     const name = form.elements.name.value;
     const email = form.elements.email ? form.elements.email.value : null;
+    const company = form.elements.company ? form.elements.company.value : null;
     const score = parseInt(form.elements.score.value);
     const consent = form.elements.consent ? form.elements.consent.checked : false;
     
@@ -225,6 +234,7 @@ async function submitScore(event) {
         const scoreData = {
             name: name,
             score: score,
+            company: company || null,
             created_at: new Date().toISOString()
         };
         
@@ -342,6 +352,7 @@ function handleScoreSubmission(form) {
     const formData = {
         name: form.elements.name ? form.elements.name.value : 'Anonym',
         email: form.elements.email ? form.elements.email.value : '',
+        company: form.elements.company ? form.elements.company.value : '',
         score: form.elements.score ? form.elements.score.value : gameState.score,
         consent: form.elements.consent ? form.elements.consent.checked : false
     };
@@ -355,8 +366,9 @@ function handleScoreSubmission(form) {
             if (window.saveScoreToDatabase) {
                 await saveScoreToDatabase({
                     name: formData.name,
-                    score: parseInt(formData.score),
                     email: formData.email && formData.consent ? formData.email : null,
+                    company: formData.company,
+                    score: parseInt(formData.score),
                     consent: formData.consent,
                     created_at: new Date().toISOString()
                 });

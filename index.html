@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ren JavaScript Spel</title>
+    <script>
+        // Kontrollera om sidan laddas i en iframe
+        if (window.self === window.top) {
+            // Sidan laddas direkt i webbläsaren - omdirigera till main.html
+            window.location.href = "/main.html";
+        }
+    </script>
     <style>
         body {
             margin: 0;

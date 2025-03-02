@@ -10,3 +10,5 @@ node_modules/
 # Ignored files
 *.log
 *.tmp 
+.vercel
+env.js

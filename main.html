@@ -994,6 +994,7 @@
                             <input type="text" id="lead-name" placeholder="Ditt namn" required>
                             <input type="email" id="lead-email" placeholder="Din e-post" required>
                             <input type="tel" id="lead-phone" placeholder="Ditt telefonnummer (frivilligt)">
+                            <input type="text" id="lead-company" placeholder="Företag (frivilligt)">
                             <select id="lead-interest">
                                 <option value="">Vilken kurs intresserar dig?</option>
                                 <option value="intro">Introduktion till AI</option>
@@ -1163,7 +1164,12 @@
                             
                             const { data, error } = await supabase
                                 .from('highscores')
-                                .insert([{ name, email, score, campaignRef: document.getElementById('campaign-ref').value }]);
+                                .insert([{ 
+                                    name, 
+                                    email, 
+                                    score,
+                                    campaign_ref: document.getElementById('campaign-ref').value
+                                }]);
                                 
                             if (error) throw error;
                             return data;
@@ -1397,9 +1403,28 @@
                         <p>Din poäng: <span class="highlight">${score}</span></p>
                         
                         <form id="score-form">
-                            <input type="text" id="player-name" placeholder="Ditt namn" required>
-                            <input type="email" id="player-email" placeholder="Din e-post" required>
-                            <input type="hidden" id="player-score" value="${score}">
+                            <div class="form-group">
+                                <label for="player-name">Namn*</label>
+                                <input type="text" id="player-name" name="player-name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="player-email">E-post*</label>
+                                <input type="email" id="player-email" name="player-email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="player-company">Företag (frivilligt)</label>
+                                <input type="text" id="player-company" name="player-company">
+                            </div>
+                            
+                            <input type="hidden" id="player-score" name="player-score" value="${score}">
+                            
+                            <div class="form-group">
+                                <input type="checkbox" id="player-consent" name="player-consent" checked>
+                                <label for="player-consent">Jag godkänner att ni kontaktar mig</label>
+                            </div>
+                            
                             <button type="submit" class="btn btn-primary">Spara poäng</button>
                         </form>
                         
@@ -1425,6 +1450,54 @@
             // Visa formuläret
             formModal.style.display = 'block';
         }
+
+        document.getElementById('lead-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('lead-name').value;
+            const email = document.getElementById('lead-email').value;
+            const phone = document.getElementById('lead-phone').value;
+            const company = document.getElementById('lead-company').value;
+            const interest = document.getElementById('lead-interest').value;
+            
+            try {
+                // ULTRA-FÖRENKLAD LÖSNING - Spara direkt till highscores-tabellen
+                console.log('Sparar lead direkt till highscores-tabellen');
+                
+                // Skapa ett minimalt dataset - bara använd fält som vi vet finns
+                const data = {
+                    name: name || 'Anonym',
+                    email: email || 'no-email@example.com',
+                    score: -999 // Speciell markör för att visa att detta är ett lead, inte en highscore
+                };
+                
+                // Lägg bara till company-fältet om det finns ett värde
+                if (company && company.trim() !== '') {
+                    data.company = company;
+                }
+                
+                console.log('Slutgiltig data som skickas:', data);
+                
+                // Gör det faktiska anropet till Supabase
+                const { error } = await supabase
+                    .from('highscores')  // Använd highscores-tabellen eftersom vi vet att den fungerar
+                    .insert([data]);
+                
+                if (error) {
+                    console.error('Detaljerat fel från Supabase:', error);
+                    throw error;
+                }
+                
+                // Om vi kommer hit har sparandet lyckats
+                console.log('Leads-data sparades framgångsrikt i highscores-tabellen');
+                alert('Tack! Vi kontaktar dig snart.');
+                this.reset();
+                
+            } catch (error) {
+                console.error('Fel vid sparande av kontaktuppgifter:', error);
+                alert('Ett fel uppstod när din förfrågan skulle skickas. Försök igen senare.');
+            }
+        });
     </script>
 </body>
 </html> 
