@@ -1,0 +1,262 @@
+/* Nya CSS-tillägg för marknadsföringssidan */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.tagline {
+    color: #90caf9;
+    margin-top: -10px;
+    font-size: 1.2rem;
+}
+
+/* Intro-sektion */
+#intro-section {
+    padding: 60px 0;
+    text-align: center;
+    background: linear-gradient(to bottom, #0a1929, #162b3d);
+}
+
+#intro-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #1e88e5;
+}
+
+#intro-section p {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+/* Kurs-sektion */
+#courses-section {
+    padding: 80px 0;
+    background-color: #0d1c2b;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.course-card {
+    background-color: #162b3d;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.course-card.highlighted {
+    border: 2px solid #1e88e5;
+    background-color: #1e3a52;
+}
+
+.course-card h3 {
+    color: #1e88e5;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.course-features {
+    margin: 20px 0;
+    padding-left: 20px;
+}
+
+.course-features li {
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.course-features li:before {
+    content: "✓";
+    color: #1e88e5;
+    position: absolute;
+    left: -20px;
+}
+
+/* Kontakt-sektion */
+#contact-section {
+    padding: 80px 0;
+    background-color: #162b3d;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    background-color: #0a1929;
+    border: 1px solid #1e88e5;
+    border-radius: 4px;
+    color: white;
+    resize: vertical;
+}
+
+/* Footer */
+footer {
+    background-color: #0a1929;
+    padding: 60px 0 20px;
+    border-top: 1px solid #1e88e5;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-logo h2 {
+    color: #1e88e5;
+    margin-bottom: 10px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: #90caf9;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: #1e88e5;
+}
+
+.footer-bottom {
+    padding-top: 20px;
+    border-top: 1px solid #162b3d;
+    text-align: center;
+    color: #90caf9;
+}
+
+/* Game controls */
+#game-controls {
+    margin-top: 20px;
+    background: #162b3d;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+#game-controls h3 {
+    margin-top: 0;
+    color: #1e88e5;
+}
+
+#game-controls ul {
+    margin-bottom: 20px;
+}
+
+#game-controls li {
+    margin-bottom: 10px;
+}
+
+/* Modal förbättringar */
+.modal-content {
+    max-width: 600px;
+    padding: 30px;
+}
+
+.modal-content h2 {
+    color: #1e88e5;
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #162b3d;
+    color: white;
+    border: 2px solid #1e88e5;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background-color: #1e3a52;
+}
+
+.btn-primary {
+    background-color: #1e88e5;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #1e88e5;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(30, 136, 229, 0.1);
+}
+
+/* Responsivitet */
+@media (max-width: 900px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    #intro-section h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+} 

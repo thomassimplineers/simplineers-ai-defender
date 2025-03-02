@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI DEFENDER | 80-tals Arkadspel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Importera retro-pixeltypsnitt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Grundläggande retroinspirerad stil */
+        body {
+            background-color: #070707;
+            color: #FF7F50;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            background-image: radial-gradient(#111133 1px, transparent 1px);
+            background-size: 3px 3px;
+        }
+        
+        /* Layout och container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header-stilar */
+        header {
+            text-align: center;
+            padding: 30px 0 20px;
+            position: relative;
+        }
+        
+        .logo-container h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #FF7F50;
+            text-shadow: 
+                4px 4px 0px #5A3626,
+                8px 8px 0px #111133;
+            letter-spacing: 2px;
+            transform: perspective(500px) rotateX(10deg);
+            padding-bottom: 10px;
+        }
+        
+        .tagline {
+            color: #FFB347;
+            font-size: 0.8rem;
+            text-shadow: 2px 2px 0 #111133;
+            letter-spacing: 1px;
+        }
+        
+        /* Introduktionssektion */
+        #intro-section {
+            text-align: center;
+            padding: 40px 0;
+            margin-bottom: 20px;
+            background-color: rgba(17, 17, 51, 0.3);
+            border-top: 4px solid #7FD4FF;
+            border-bottom: 4px solid #7FD4FF;
+            position: relative;
+        }
+        
+        #intro-section h2 {
+            color: #FFB347;
+            font-size: 1.5rem;
+            text-shadow: 3px 3px 0 #111133;
+            margin-bottom: 20px;
+        }
+        
+        #intro-section p {
+            margin-bottom: 30px;
+            font-size: 0.7rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            color: #7FD4FF;
+        }
+        
+        /* Retro-knappar */
+        .btn {
+            background-color: #111133;
+            color: #FFB347;
+            border: none;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            cursor: pointer;
+            box-shadow: 
+                4px 4px 0 #8B4513,
+                -4px -4px 0 rgba(255, 179, 71, 0.3);
+            position: relative;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            image-rendering: pixelated;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                6px 6px 0 #8B4513,
+                -4px -4px 0 rgba(255, 179, 71, 0.5);
+            text-shadow: 0 0 5px #FFB347;
+        }
+        
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 
+                0px 0px 0 #8B4513,
+                -2px -2px 0 rgba(255, 179, 71, 0.3);
+        }
+        
+        .btn-primary {
+            background-color: #8B4513;
+            color: #FFB347;
+            box-shadow: 
+                4px 4px 0 #5A3626,
+                -4px -4px 0 rgba(255, 179, 71, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        /* Spel-sektion med pixelkanter */
+        #game-section {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        #game-container {
+            border: 4px solid #7FD4FF;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #game-container::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            z-index: -1;
+            background-color: #111133;
+            border: 2px dashed #FF7F50;
+        }
+        
+        #game-iframe {
+            display: block;
+            background-color: #000;
+            box-shadow: 0 0 20px rgba(127, 212, 255, 0.3);
+        }
+        
+        #game-controls {
+            background-color: rgba(17, 17, 51, 0.5);
+            padding: 20px;
+            border: 2px solid #FF7F50;
+        }
+        
+        #game-controls h3 {
+            color: #FFB347;
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0 #111133;
+            border-bottom: 2px dashed #7FD4FF;
+            padding-bottom: 10px;
+        }
+        
+        #game-controls ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        #game-controls li {
+            margin-bottom: 10px;
+            font-size: 0.6rem;
+            color: #7FD4FF;
+        }
+        
+        #game-controls strong {
+            color: #FF7F50;
+        }
+        
+        /* Highscore-sektion */
+        #highscore-section {
+            padding: 30px 0;
+            background-color: rgba(17, 17, 51, 0.3);
+            border-top: 4px solid #7FD4FF;
+            border-bottom: 4px solid #7FD4FF;
+        }
+        
+        #highscore-section h2 {
+            color: #FFB347;
+            text-align: center;
+            font-size: 1.5rem;
+            text-shadow: 3px 3px 0 #111133;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        #highscore-section h2::after {
+            content: "TOP SCORES";
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: #FF7F50;
+            width: 100%;
+            text-align: center;
+        }
+        
+        #highscore-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #FF7F50;
+            background-color: rgba(10, 10, 10, 0.7);
+            box-shadow: 0 0 15px rgba(127, 212, 255, 0.2);
+            image-rendering: pixelated;
+            font-size: 0.7rem;
+        }
+        
+        #highscore-table th {
+            background-color: #111133;
+            color: #7FD4FF;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #FF7F50;
+            font-size: 0.8rem;
+        }
+        
+        #highscore-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 127, 80, 0.3);
+            color: #FFB347;
+        }
+        
+        #highscore-table tr:nth-child(even) {
+            background-color: rgba(17, 17, 51, 0.2);
+        }
+        
+        #highscore-table tr:hover {
+            background-color: rgba(127, 212, 255, 0.1);
+        }
+        
+        /* Game Over-formulär */
+        #highscore-form-container {
+            background-color: rgba(10, 10, 31, 0.95);
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 30px;
+            border: 4px solid #FF7F50;
+            text-align: center;
+            box-shadow: 
+                0 0 20px rgba(0, 0, 0, 0.7),
+                0 0 40px rgba(127, 212, 255, 0.3);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        
+        #highscore-form-container::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px dashed #7FD4FF;
+            z-index: -1;
+        }
+        
+        #highscore-form-container h2 {
+            color: #FF7F50;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 #111133;
+            animation: blink 1s infinite;
+        }
+        
+        #final-score-display {
+            font-size: 1.5rem !important;
+            font-weight: bold;
+            color: #7FD4FF !important;
+            text-shadow: 
+                2px 2px 0 #111133,
+                -2px -2px 0 rgba(255, 179, 71, 0.3);
+            display: block;
+            margin: 15px 0;
+        }
+        
+        #highscore-form input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: rgba(10, 10, 10, 0.7);
+            border: 2px solid #FF7F50;
+            border-radius: 0;
+            color: #FFB347;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        #highscore-form input:focus {
+            outline: none;
+            border-color: #7FD4FF;
+            box-shadow: 
+                inset 0 0 10px rgba(0, 0, 0, 0.5),
+                0 0 10px rgba(127, 212, 255, 0.5);
+        }
+        
+        /* CRT-effekt och animationer */
+        @keyframes scanline {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 100%;
+            }
+        }
+        
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1;
+            }
+            50%, 100% {
+                opacity: 0.7;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 
+                    4px 4px 0 #5A3626,
+                    -4px -4px 0 rgba(255, 179, 71, 0.3),
+                    0 0 0 #FFB347;
+            }
+            50% {
+                box-shadow: 
+                    4px 4px 0 #5A3626,
+                    -4px -4px 0 rgba(255, 179, 71, 0.3),
+                    0 0 20px #FFB347;
+            }
+            100% {
+                box-shadow: 
+                    4px 4px 0 #5A3626,
+                    -4px -4px 0 rgba(255, 179, 71, 0.3),
+                    0 0 0 #FFB347;
+            }
+        }
+        
+        /* CRT-överlägg för hela sidan */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 1001;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+        
+        /* Övriga stilar */
+        .hidden {
+            display: none !important;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 50px;
+            border-top: 2px dashed #7FD4FF;
+            font-size: 0.6rem;
+            color: #7FD4FF;
+        }
+        
+        /* Responsivitetsanpassningar */
+        @media (max-width: 992px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .logo-container h1 {
+                font-size: 2rem;
+            }
+            
+            #game-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #game-container, #game-iframe {
+                width: 100%;
+                max-width: 500px;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>AI DEFENDER</h1>
+            <p class="tagline">Försvara galaxen mot fientliga AI:er</p>
+        </div>
+    </header>
+
+    <main>
+        <section id="intro-section">
+            <div class="container">
+                <h2>Testa dina färdigheter</h2>
+                <p>Utmana dig själv i detta actionfyllda rymdspel och försök nå toppen av highscore-listan!</p>
+                <div class="cta-buttons">
+                    <button id="start-game-btn" class="btn btn-primary">SPELA NU</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="game-section" class="hidden">
+            <div class="container">
+                <div id="game-container">
+                    <iframe id="game-iframe" src="index.html" width="800" height="600" frameborder="0"></iframe>
+                </div>
+                <div id="game-controls">
+                    <h3>Kontroller</h3>
+                    <ul>
+                        <li><strong>Piltangenter/WASD:</strong> Förflytta skeppet</li>
+                        <li><strong>Mellanslag:</strong> Skjut</li>
+                        <li><strong>P:</strong> Pausa spelet</li>
+                    </ul>
+                    <button id="back-to-menu-btn" class="btn">Tillbaka till meny</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="highscore-section">
+            <div class="container">
+                <h2>Topplista</h2>
+                <div class="highscore-container">
+                    <table id="highscore-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Namn</th>
+                                <th>Poäng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="highscore-list">
+                            <!-- Dynamiskt innehåll -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Formulär visas vid game over -->
+        <div id="highscore-form-container" style="display: none;">
+            <h2>Game Over!</h2>
+            <p>Din poäng: <span id="final-score-display" style="font-size: 24px; font-weight: bold; color: #4fc3f7;">0</span></p>
+            <form id="highscore-form">
+                <input type="text" id="name-input" placeholder="Ditt namn" required>
+                <input type="email" id="email-input" placeholder="Din e-post (valfritt)">
+                <input type="hidden" id="score-input" name="score" value="0">
+                <button type="submit" class="btn">Spara resultat</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 AI Defender. Alla rättigheter förbehållna.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript-filer -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/highscore.js"></script>
+    
+    <!-- Behåll resten av JavaScript-koden oförändrad -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kontrollera om funktionerna redan har definierats i external scripts
+            if (typeof saveScoreToSupabase !== 'function') {
+                console.warn('saveScoreToSupabase was not defined in external scripts, using fallback');
+                
+                // Fallback-implementation
+                window.saveScoreToSupabase = function(name, email, score) {
+                    console.log('Using fallback saveScoreToSupabase function');
+                    
+                    if (typeof supabase === 'undefined') {
+                        console.error('Supabase client is not defined!');
+                        return Promise.reject(new Error('Supabase client is not defined'));
+                    }
+                    
+                    return supabase
+                        .from('highscores')
+                        .insert([{ name, email, score: parseInt(score, 10) }])
+                        .then(response => {
+                            if (response.error) throw response.error;
+                            return response.data;
+                        });
+                };
+            }
+            
+            if (typeof loadHighscores !== 'function') {
+                console.warn('loadHighscores was not defined in external scripts, using fallback');
+                
+                // Fallback-implementation
+                window.loadHighscores = function() {
+                    console.log('Using fallback loadHighscores function');
+                    
+                    if (typeof supabase === 'undefined') {
+                        console.error('Supabase client is not defined!');
+                        return Promise.reject(new Error('Supabase client is not defined'));
+                    }
+                    
+                    return supabase
+                        .from('highscores')
+                        .select('*')
+                        .order('score', { ascending: false })
+                        .limit(10)
+                        .then(response => {
+                            if (response.error) {
+                                console.error('Error loading highscores:', response.error);
+                                return;
+                            }
+                            
+                            // Visa highscores i tabellen
+                            const highscoreList = document.getElementById('highscore-list');
+                            highscoreList.innerHTML = '';
+                            
+                            response.data.forEach((score, index) => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${index + 1}</td>
+                                    <td>${score.name}</td>
+                                    <td>${score.score}</td>
+                                `;
+                                highscoreList.appendChild(row);
+                            });
+                        });
+                };
+            }
+            
+            // Ladda in spelet som ett separat skript när användaren klickar på "SPELA NU"
+            document.getElementById('start-game-btn').addEventListener('click', function() {
+                document.getElementById('intro-section').classList.add('hidden');
+                document.getElementById('game-section').classList.remove('hidden');
+                
+                // Fokusera på iframe för att säkerställa att tangenttryckningar fångas upp korrekt
+                setTimeout(function() {
+                    document.getElementById('game-iframe').focus();
+                }, 100);
+            });
+            
+            // Ladda highscores direkt
+            loadHighscores();
+
+            document.getElementById('highscore-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Highscore form submitted'); // Debug
+                
+                const name = document.getElementById('name-input').value;
+                const email = document.getElementById('email-input').value || null; // Om e-post saknas sätt som null
+                const score = parseInt(document.getElementById('score-input').value, 10);
+                
+                console.log('Saving score:', {name, email, score}); // Debug
+                
+                // Kontrollera att saveScoreToSupabase är definierad
+                if (typeof saveScoreToSupabase !== 'function') {
+                    console.error('saveScoreToSupabase is not defined!');
+                    alert('Ett tekniskt fel uppstod. Funktionen för att spara poäng saknas.');
+                    return;
+                }
+                
+                try {
+                    // Visa laddningsindikator
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Sparar...';
+                    
+                    // Anropa Supabase direkt här temporärt för felsökning om det behövs
+                    // Detta är en fallback om den externa funktionen inte fungerar
+                    const temporarySave = async () => {
+                        try {
+                            // Bekräfta att supabase variabeln existerar
+                            if (typeof supabase === 'undefined') {
+                                throw new Error('Supabase client is not defined');
+                            }
+                            
+                            const { data, error } = await supabase
+                                .from('highscores')
+                                .insert([{ name, email, score }]);
+                                
+                            if (error) throw error;
+                            return data;
+                        } catch (error) {
+                            console.error('Supabase error:', error);
+                            throw error;
+                        }
+                    };
+                    
+                    // Använd den ursprungliga funktionen men med bättre felhantering
+                    saveScoreToSupabase(name, email, score)
+                        .then(() => {
+                            console.log('Score saved successfully');
+                            // Visa highscore-listan och dölj formuläret
+                            document.getElementById('highscore-form-container').style.display = 'none';
+                            document.getElementById('highscore-section').classList.remove('hidden');
+                            // Uppdatera topplistan
+                            loadHighscores();
+                        })
+                        .catch(error => {
+                            console.error('Error saving score:', error);
+                            // Testa fallback-metoden
+                            console.log('Attempting fallback save method...');
+                            return temporarySave();
+                        })
+                        .then(data => {
+                            if (data) {
+                                console.log('Score saved with fallback method');
+                                document.getElementById('highscore-form-container').style.display = 'none';
+                                document.getElementById('highscore-section').classList.remove('hidden');
+                                loadHighscores();
+                            }
+                        })
+                        .catch(finalError => {
+                            console.error('All save attempts failed:', finalError);
+                            alert('Ett fel uppstod när ditt resultat skulle sparas. Försök igen senare.');
+                        })
+                        .finally(() => {
+                            // Återställ knappen
+                            submitButton.disabled = false;
+                            submitButton.textContent = 'Spara resultat';
+                        });
+                } catch (e) {
+                    console.error('Unexpected error in form submission:', e);
+                    alert('Ett oväntat fel inträffade. Försök igen senare.');
+                }
+            });
+
+            // Lägg till detta i main.html för att lyssna efter meddelanden från spelet
+            window.addEventListener('message', function(event) {
+                // Kontrollera att meddelandet är från spelet och av rätt typ
+                if (event.data && event.data.type === 'gameOver') {
+                    // Hämta poängen
+                    const score = event.data.score;
+                    
+                    // Dölj spelcontainern
+                    document.getElementById('game-container').style.display = 'none';
+                    
+                    // Visa highscore-formuläret
+                    const highscoreForm = document.getElementById('highscore-form-container');
+                    highscoreForm.style.display = 'block';
+                    
+                    // Sätt poängen i formuläret
+                    document.getElementById('score-input').value = score;
+                    document.getElementById('final-score-display').textContent = score;
+                }
+            });
+
+            // Ersätt den befintliga keydown-lyssnaren med denna mer robusta version
+            window.addEventListener('keydown', function(e) {
+                // Kontrollera om vi befinner oss i ett input-fält
+                const isInputActive = document.activeElement.tagName === 'INPUT' || 
+                                     document.activeElement.tagName === 'TEXTAREA';
+                
+                // Förhindra mellanslag från att scrolla sidan, men tillåt det i input-fält
+                if ((e.key === ' ' || e.code === 'Space') && !isInputActive) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

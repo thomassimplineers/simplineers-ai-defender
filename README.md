@@ -1,6 +1,13 @@
 # Simplineers AI Defender
 
-Ett 2D-skjutspel inspirerat av Gradius som utvecklats för Simplineers marknadsföringskampanj.
+Ett rymdskjutarspel byggt med p5.js som demonstrerar AI-koncept och samlar in potentiella leads för AI-utbildningar.
+
+## Installation och körning
+
+1. Klona detta repository
+2. Kopiera `js/supabase-config.template.js` till `js/supabase-config.js`
+3. Uppdatera Supabase-konfigurationen i `js/supabase-config.js` med dina egna uppgifter
+4. Öppna `index.html` i en webbläsare eller använd en lokal webbserver
 
 ## Översikt
 - **Genre:** 2D-skjutspel inspirerat av Gradius.
@@ -19,11 +26,6 @@ Ett 2D-skjutspel inspirerat av Gradius som utvecklats för Simplineers marknadsf
 - Byggt med Phaser 3.55.2
 - Använder enkel geometri för sprite-grafik
 - Responsiv design för olika skärmstorlekar
-
-## Installation
-1. Klona detta repo
-2. Öppna index.html i en modern webbläsare
-3. Alternativt, använd en lokal server för att undvika CORS-problem
 
 ## Utvecklad av
 Simplineers Team

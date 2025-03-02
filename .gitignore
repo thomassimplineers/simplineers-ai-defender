@@ -1,0 +1,12 @@
+# Ignorera faktiska konfigurationer med API-nycklar
+js/supabase-config.js
+
+# Ignored directories
+node_modules/
+.vscode/
+.idea/
+.DS_Store
+
+# Ignored files
+*.log
+*.tmp 
