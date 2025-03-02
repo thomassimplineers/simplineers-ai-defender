@@ -1,22 +1,39 @@
-// Konfiguration för Supabase
-// Hämta nycklar från miljövariabler när tillgängliga, annars använd fallback-värden
-const supabaseUrl = typeof window !== 'undefined' && window.ENV_SUPABASE_URL 
-  ? window.ENV_SUPABASE_URL 
-  : 'https://wnfkoluezjprqphbirgo.supabase.co';
-  
-const supabaseKey = typeof window !== 'undefined' && window.ENV_SUPABASE_KEY 
-  ? window.ENV_SUPABASE_KEY 
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZmtvbHVlempwcnFwaGJpcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTE3OTcsImV4cCI6MjA1NjMyNzc5N30.SjRb-sHqiSf_-ud5VSwXNqCZurqDrMwwq_S-aFVO9H0';
-
-// Logga information (ta bort i produktion)
-console.log('Använder Supabase URL:', supabaseUrl.substring(0, 30) + '...');
-console.log('Miljövariabler tillgängliga:', !!window.ENV_SUPABASE_URL);
-
-// Initiera Supabase-klienten
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-// Exportera som globalt objekt
-window.supabaseClient = supabase;
+/**
+ * Supabase konfiguration - hämtar värden från miljövariabler
+ */
+(function() {
+    // Försök hämta värden från flera möjliga källor
+    const supabaseUrl = 
+        // Vercel miljövariabler som har exponerats till frontend
+        window.SUPABASE_URL || 
+        // Försök hitta miljövariabel som kan ha kommit från env.js lokalt
+        window.ENV_SUPABASE_URL || 
+        // Fallback (tom sträng för att undvika fel, men kommer inte fungera)
+        "";
+    
+    const supabaseKey = 
+        window.SUPABASE_KEY || 
+        window.ENV_SUPABASE_KEY || 
+        "";
+    
+    // Kontrollera om vi har nödvändiga värden innan vi fortsätter
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("VARNING: Supabase URL eller KEY saknas!");
+        console.log("Tillgängliga globala variabler:", 
+                    "SUPABASE_URL:", !!window.SUPABASE_URL, 
+                    "ENV_SUPABASE_URL:", !!window.ENV_SUPABASE_URL);
+    } else {
+        console.log("Supabase-konfiguration laddad. URL börjar med:", 
+                    supabaseUrl.substring(0, 15) + "...");
+        
+        // Initialisera Supabase-klienten
+        if (typeof supabaseJs !== 'undefined') {
+            window.supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
+        } else {
+            console.error("Supabase JS-biblioteket (supabaseJs) är inte laddat!");
+        }
+    }
+})();
 
 // Funktionen för att spara poäng till Supabase
 async function saveScoreToDatabase(scoreData) {
