@@ -4,7 +4,8 @@
   "outputDirectory": ".",
   "installCommand": "",
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/", "destination": "/main.html" },
+    { "source": "/game", "destination": "/index.html" }
   ],
   "headers": [
     {
