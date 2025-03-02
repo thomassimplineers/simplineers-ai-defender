@@ -89,6 +89,13 @@
     
     // Lyssna på tangenttryckningar
     document.addEventListener('keydown', (e) => {
+        // Förhindra piltangenter från att ha effekt
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
+            e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            return false;
+        }
+        
         keys[e.key] = true;
         
         // Skjut när man trycker på mellanslag

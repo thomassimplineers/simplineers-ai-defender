@@ -31,25 +31,171 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Hämta och visa highscores
 async function loadHighscores() {
-    console.log("Loading highscores from database...");
-    
     try {
-        // Försök att hämta från Supabase
-        let scores = [];
-        
-        if (window.loadHighscoresFromDatabase) {
-            scores = await loadHighscoresFromDatabase();
-            console.log("Scores loaded from database:", scores);
-        } else {
-            console.warn("Database function not available, using empty array");
+        const { data, error } = await supabase
+            .from('highscores')
+            .select('*')
+            .gte('score', 0)  // Hämta bara riktiga highscores (inte leads med negativ poäng)
+            .order('score', { ascending: false })
+            .limit(10);
+            
+        if (error) {
+            console.error('Error loading highscores:', error);
+            return;
         }
         
-        // Rendera resultaten
-        renderHighscores(scores);
-    } catch (error) {
-        console.error('Failed to load highscores:', error);
+        displayHighscores(data || []);
+    } catch (e) {
+        console.error('Unexpected error loading highscores:', e);
     }
 }
+
+// Funktion för att visa highscores
+function displayHighscores(highscores) {
+    const highscoreList = document.getElementById('highscore-list');
+    highscoreList.innerHTML = '';
+    
+    if (highscores.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `<td colspan="3">Inga highscores än. Bli först!</td>`;
+        highscoreList.appendChild(emptyRow);
+        return;
+    }
+    
+    highscores.forEach((score, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${score.name}</td>
+            <td>${score.score}</td>
+        `;
+        highscoreList.appendChild(row);
+    });
+}
+
+// Funktion för att spara highscore
+async function saveHighscore(name, email, score) {
+    try {
+        console.log('Sparar highscore:', { name, email, score });
+        
+        // Kontrollera vilka kolumner som finns i highscores-tabellen
+        const { data: existingData, error: fetchError } = await supabase
+            .from('highscores')
+            .select('*')
+            .limit(1);
+            
+        if (fetchError) {
+            console.error('Kunde inte hämta highscores-struktur:', fetchError);
+            throw fetchError;
+        }
+        
+        // Skapa ett objekt med endast de kolumner vi vet finns
+        const scoreData = { 
+            name: name, 
+            email: email, 
+            score: score  // Detta är en score, inte en lead
+        };
+        
+        // Lägg till campaign_ref om det finns
+        if (existingData && existingData.length > 0) {
+            // Snake_case-variant
+            if ('campaign_ref' in existingData[0]) {
+                scoreData.campaign_ref = 'GAME_SCORE';
+            } 
+            // CamelCase-variant
+            else if ('campaignRef' in existingData[0]) {
+                scoreData.campaignRef = 'GAME_SCORE';
+            }
+        }
+        
+        // Spara highscore till Supabase
+        const { data, error } = await supabase
+            .from('highscores')
+            .insert([scoreData]);
+            
+        if (error) {
+            console.error('Error saving highscore:', error);
+            throw error;
+        }
+        
+        console.log('Highscore sparad:', data);
+        return { success: true };
+    } catch (e) {
+        console.error('Unexpected error saving highscore:', e);
+        return { success: false, error: e };
+    }
+}
+
+// Funktion för att hantera highscore-formulär
+function setupHighscoreForm() {
+    const scoreForm = document.getElementById('score-form');
+    if (!scoreForm) return;
+    
+    scoreForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const nameInput = document.getElementById('player-name');
+        const emailInput = document.getElementById('player-email');
+        const scoreInput = document.getElementById('player-score');
+        
+        if (!nameInput || !emailInput || !scoreInput) {
+            console.error('Missing form inputs');
+            return;
+        }
+        
+        const name = nameInput.value;
+        const email = emailInput.value;
+        const score = parseInt(scoreInput.value);
+        
+        if (!name || !email || isNaN(score)) {
+            alert('Vänligen fyll i alla fält korrekt');
+            return;
+        }
+        
+        const submitButton = scoreForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sparar...';
+        
+        try {
+            const result = await saveHighscore(name, email, score);
+            
+            if (result.success) {
+                // Visa bekräftelse
+                alert('Din poäng har sparats!');
+                
+                // Återställ formuläret
+                scoreForm.reset();
+                
+                // Uppdatera highscorelistan
+                loadHighscores();
+                
+                // Stäng modalen om den finns
+                const modal = document.getElementById('highscore-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            } else {
+                alert('Ett fel uppstod. Försök igen senare.');
+            }
+        } catch (e) {
+            console.error('Error in highscore submission:', e);
+            alert('Ett tekniskt fel uppstod. Försök igen senare.');
+        } finally {
+            // Återställ knappen
+            submitButton.disabled = false;
+            submitButton.textContent = 'Spara poäng';
+        }
+    });
+}
+
+// Initiera highscore-funktioner när sidan laddas
+document.addEventListener('DOMContentLoaded', function() {
+    loadHighscores();
+    setupHighscoreForm();
+    
+    // Återuppladdning av highscores varje minut
+    setInterval(loadHighscores, 60000);
+});
 
 // Skicka poäng till databasen
 async function submitScore(event) {
