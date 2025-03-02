@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "echo window.SUPABASE_URL=\\\"$SUPABASE_URL\\\"\; window.SUPABASE_KEY=\\\"$SUPABASE_KEY\\\"\; console.log\\(\\\"Vercel miljövariabler laddade\\\"\\)\; > public/env-config.js",
+  "buildCommand": "echo \"window.SUPABASE_URL='$SUPABASE_URL'; window.SUPABASE_KEY='$SUPABASE_KEY'; console.log('Vercel miljövariabler laddade');\" > public/env-config.js",
   "outputDirectory": ".",
   "installCommand": "",
   "rewrites": [
