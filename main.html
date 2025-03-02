@@ -11,8 +11,24 @@
     <meta property="og:image" content="url-to-your-game-screenshot.jpg">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/env.js"></script>
-    <script src="js/supabase-config.js"></script>
+    <!-- Ladda miljövariabler från Vercel-produktionen -->
+    <script src="/env-config.js"></script>
+    <!-- Ladda lokala variabler om de finns (kommer ignoreras i produktion) -->
+    <script>
+      try { 
+        // Kör detta i en try-block för att undvika fel om filen saknas
+        document.write('<script src="/env.js"><\/script>');
+      } catch(e) { console.log("Ingen lokal env.js hittad, troligen produktionsmiljö"); }
+    </script>
+    <!-- Skapa grunder för Supabase om det behövs -->
+    <script>
+      // Debug för att se om variablerna finns
+      console.log("Debug: Supabase-variabler", {
+        fromEnv: !!window.ENV_SUPABASE_URL,
+        fromVercel: !!window.SUPABASE_URL
+      });
+    </script>
+    <script src="/js/supabase-config.js"></script>
     <!-- Importera retro-pixeltypsnitt -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
