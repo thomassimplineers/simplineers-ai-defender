@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Defender - Simplineers</title>
+    <!-- p5.js bibliotek -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a1f;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+        
+        canvas {
+            border: 2px solid #4fc3f7;
+            display: block;
+        }
+        
+        #highscore-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #4fc3f7;
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            text-align: center;
+            min-width: 300px;
+        }
+        
+        #highscore-form h2 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        
+        #highscore-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #1a1a2e;
+            border: 1px solid #4fc3f7;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        #highscore-form button {
+            background-color: #4fc3f7;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #highscore-form button:hover {
+            background-color: #64b5f6;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        #score {
+            color: #4fc3f7;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Canvas kommer att skapas här av p5.js -->
+        
+        <!-- Highscore-formulär (dolt som standard) -->
+        <div id="highscore-form" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Din poäng: <span id="score">0</span></p>
+            <form id="score-form">
+                <input type="text" id="name" placeholder="Ditt namn" required>
+                <input type="email" id="email" placeholder="Din e-post (valfritt)">
+                <input type="text" id="company" placeholder="Företag (valfritt)">
+                <input type="hidden" id="score-input" value="0">
+                <button type="submit">Spara poäng</button>
+                <button type="button" id="skip-btn">Hoppa över</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Enbart p5.js spellogik -->
+    <script src="js/game-p5only.js"></script>
+    
+    <script>
+        // Hantera highscore-formulär
+        document.getElementById('score-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const company = document.getElementById('company').value;
+            const score = document.getElementById('score-input').value;
+            
+            console.log('Highscore:', { name, email, company, score });
+            
+            document.getElementById('highscore-form').classList.add('hidden');
+            
+            if (typeof resetGame === 'function') {
+                resetGame();
+            }
+        });
+        
+        document.getElementById('skip-btn').addEventListener('click', function() {
+            document.getElementById('highscore-form').classList.add('hidden');
+            if (typeof resetGame === 'function') {
+                resetGame();
+            }
+        });
+    </script>
+</body>
+</html>
