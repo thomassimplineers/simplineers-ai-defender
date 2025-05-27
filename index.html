@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ren JavaScript Spel</title>
-    <script>
-        // Kontrollera om sidan laddas i en iframe
-        if (window.self === window.top) {
-            // Sidan laddas direkt i webbläsaren - omdirigera till main.html
-            window.location.href = "/main.html";
-        }
-    </script>
+    <title>AI Defender - Simplineers</title>
+    <!-- p5.js bibliotek -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    
+    <!-- Supabase konfiguration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/env.js"></script>
+    <script src="js/supabase-config.js"></script>
+    
     <style>
         body {
             margin: 0;
@@ -21,1840 +22,189 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            overflow: hidden;
         }
         
         #game-container {
+            position: relative;
             width: 800px;
             height: 600px;
-            position: relative;
         }
         
-        #game-canvas {
+        canvas {
             border: 2px solid #4fc3f7;
+            display: block;
+        }
+        
+        #highscore-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #4fc3f7;
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            text-align: center;
+            min-width: 300px;
+        }
+        
+        #highscore-form h2 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        
+        #highscore-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #1a1a2e;
+            border: 1px solid #4fc3f7;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        #highscore-form button {
+            background-color: #4fc3f7;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #highscore-form button:hover {
+            background-color: #64b5f6;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        #score {
+            color: #4fc3f7;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <!-- Canvas kommer att skapas här av p5.js -->
+        
+        <!-- Highscore-formulär (dolt som standard) -->
+        <div id="highscore-form" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Din poäng: <span id="score">0</span></p>
+            <form id="score-form">
+                <input type="text" id="name" placeholder="Ditt namn" required>
+                <input type="email" id="email" placeholder="Din e-post (valfritt)">
+                <input type="text" id="company" placeholder="Företag (valfritt)">
+                <input type="hidden" id="score-input" value="0">
+                <button type="submit">Spara poäng</button>
+                <button type="button" id="skip-btn">Hoppa över</button>
+            </form>
+        </div>
     </div>
     
+    <!-- Debug Panel -->
+    <script src="js/debug.js"></script>
+    
+    <!-- Audio Manager -->
+    <script src="js/audio-manager.js"></script>
+    
+    <!-- Entity-filer -->
+    <script src="js/entities/player.js"></script>
+    <script src="js/entities/bullet.js"></script>
+    <script src="js/entities/enemies.js"></script>
+    <script src="js/entities/powerups.js"></script>
+    <script src="js/entities/neural-network-boss.js"></script>
+    
+    <!-- Effect-filer -->
+    <script src="js/effects/starfield.js"></script>
+    <script src="js/effects/particles.js"></script>
+    <script src="js/effects/explosion.js"></script>
+    
+    <!-- Scene-filer -->
+    <script src="js/scenes/bootScene.js"></script>
+    <script src="js/scenes/menuScene.js"></script>
+    <script src="js/scenes/gameScene.js"></script>
+    <script src="js/scenes/uiScene.js"></script>
+    
+    <!-- Huvudspelfil -->
+    <script src="js/game.js"></script>
+    
+    <!-- Highscore-hantering -->
+    <script src="js/highscore.js"></script>
+    
+    <!-- Marketing/Lead generation -->
+    <script src="js/leads.js"></script>
+    
     <script>
-    // Hämta canvas och kontext
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Bakgrundsstjärnor
-    const stars = [];
-    const STAR_COUNT = 100;
-    
-    // Spelarens egenskaper
-    const player = {
-        x: 400,
-        y: 550,
-        size: 20,
-        speed: 5,
-        dx: 0,
-        dy: 0,
-        invincible: false,
-        powerUps: {
-            doubleFire: false,
-            fastFire: false,
-            shield: false,
-            autoTurret: false,
-            piercingShots: false
-        }
-    };
-    
-    // Fiender
-    const enemies = [];
-    const ENEMY_TYPES = {
-        BASIC: 'basic',
-        FAST: 'fast',
-        TANK: 'tank'
-    };
-    
-    // Skott
-    const bullets = [];
-    const FIRE_RATE = 20;
-    let fireCounter = 0;
-    
-    // Power-ups
-    const powerUps = [];
-    const POWERUP_TYPES = {
-        DOUBLE_FIRE: 'doubleFire',
-        FAST_FIRE: 'fastFire',
-        SHIELD: 'shield',
-        AUTO_TURRET: 'autoTurret',
-        PIERCING_SHOTS: 'piercingShots'
-    };
-    const POWERUP_SPAWN_CHANCE = 0.1; // 10% chans att en fiende droppar en power-up
-    
-    // Tangenttryckningar
-    const keys = {};
-    
-    // Lyssna på tangenttryckningar
-    document.addEventListener('keydown', (e) => {
-        // Förhindra piltangenter från att ha effekt
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
-            e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        // Hantera formuläret
+        document.getElementById('score-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            return false;
-        }
-        
-        keys[e.key] = true;
-        
-        // Skjut när man trycker på mellanslag
-        if (e.key === ' ' && !gameState.gameOver) {
-            if (fireCounter <= 0) {
-                fireBullet();
-                fireCounter = player.powerUps.fastFire ? FIRE_RATE / 2 : FIRE_RATE;
-            }
-        }
-    });
-    
-    document.addEventListener('keyup', (e) => {
-        keys[e.key] = false;
-    });
-    
-    // Speltillstånd
-    const gameState = {
-        score: 0,
-        level: 1,
-        lives: 3,
-        gameOver: false
-    };
-    
-    // Nivåsystem
-    const ENEMIES_PER_LEVEL = 10;
-    let enemiesDefeated = 0;
-    const SPAWN_RATE = 60; // Frames mellan fiendespawn
-    let spawnCounter = 0;
-    
-    // Lägg till turrets-array för att hålla reda på aktiva turrets
-    const turrets = [];
-    
-    // Lägg till följande variabler för kombo-systemet i början av skriptet, efter andra variabler
-    let comboCount = 0;
-    let comboTimer = 0;
-    const COMBO_TIME = 120; // 2 sekunder i 60 FPS
-    let comboPoints = 0;
-    let showComboMessage = false;
-    let comboMessageTimer = 0;
-    
-    // Lägg till achievement-objekt nära början av skriptet
-    const achievements = [
-        { id: 'lvl5', title: 'Rymdresenär', description: 'Nå nivå 5', unlocked: false, icon: '🚀' },
-        { id: 'score1000', title: 'Stjärnskott', description: 'Uppnå 1000 poäng', unlocked: false, icon: '⭐' },
-        { id: 'combo10', title: 'Komboknäckare', description: 'Få en 10x kombo', unlocked: false, icon: '🔥' },
-        { id: 'kills50', title: 'Rymdhjälte', description: 'Besegra 50 fiender totalt', unlocked: false, icon: '👾' },
-        { id: 'allpowerups', title: 'Kraftpaket', description: 'Ha 3+ power-ups aktiva samtidigt', unlocked: false, icon: '💪' }
-    ];
-    
-    // Lägg till räknare för totalt antal besegrade fiender
-    let totalEnemiesDefeated = 0;
-    
-    // Lägg till en variabel för att visa achievement-meddelanden
-    let showAchievementMessage = false;
-    let achievementMessageTimer = 0;
-    let currentAchievement = null;
-    
-    // Lägg till variabler för utmaningar
-    const CHALLENGE_TYPES = {
-        KILL_FAST: 'Besegra 5 fiender på 10 sekunder',
-        DODGE: 'Undvik att skjuta i 5 sekunder',
-        BOTTOM_SCREEN: 'Håll dig på nedre halvan av skärmen i 5 sekunder'
-    };
-
-    let activeChallenge = null;
-    let challengeProgress = 0;
-    let challengeTimer = 0;
-    let challengeCompleted = false;
-    let challengeMessageTimer = 0;
-    let lastChallengeLevel = 0;
-    
-    // Tillägg överst i skriptdelen, efter andra globala variabler
-    let lastTime = 0;
-    let deltaTime = 0;
-    
-    // Lägg till denna variabel överst i skriptet
-    let gameTime = 0;
-    
-    // 1. Lägg till en array för att hålla spelarträff-effekter
-    let hitEffects = [];
-    
-    // Skapa stjärnor
-    function createStars() {
-        for (let i = 0; i < STAR_COUNT; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 3,
-                speed: 0.5 + Math.random() * 1.5
-            });
-        }
-    }
-    
-    // Uppdatera stjärnor
-    function updateStars() {
-        for (let i = 0; i < stars.length; i++) {
-            // Konvertera pixlar per frame till pixlar per sekund
-            const starSpeedPerSecond = stars[i].speed * 60;
-            stars[i].y += starSpeedPerSecond * deltaTime;
             
-            // Återställ stjärnans position när den lämnar skärmen
-            if (stars[i].y > canvas.height) {
-                stars[i].y = 0;
-                stars[i].x = Math.random() * canvas.width;
-            }
-        }
-    }
-    
-    // Rita stjärnor
-    function drawStars() {
-        ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < stars.length; i++) {
-            ctx.fillRect(stars[i].x, stars[i].y, stars[i].size, stars[i].size);
-        }
-    }
-    
-    // Uppdatera spelarens position
-    function updatePlayer() {
-        // Om spelet är slut, kontrollera om spelaren vill börja om
-        if (gameState.gameOver) {
-            if (keys[' '] || keys['Space']) {
-                resetGame();
-            }
-            return;
-        }
-        
-        player.dx = 0;
-        player.dy = 0;
-        
-        // Konvertera pixlar per frame till pixlar per sekund
-        const playerSpeedPerSecond = player.speed * 60;
-        
-        if (keys['ArrowLeft'] || keys['a']) player.dx = -playerSpeedPerSecond * deltaTime;
-        if (keys['ArrowRight'] || keys['d']) player.dx = playerSpeedPerSecond * deltaTime;
-        if (keys['ArrowUp'] || keys['w']) player.dy = -playerSpeedPerSecond * deltaTime;
-        if (keys['ArrowDown'] || keys['s']) player.dy = playerSpeedPerSecond * deltaTime;
-        
-        player.x += player.dx;
-        player.y += player.dy;
-        
-        // Begränsa spelaren till canvas
-        player.x = Math.max(player.size, Math.min(player.x, canvas.width - player.size));
-        player.y = Math.max(player.size, Math.min(player.y, canvas.height - player.size));
-        
-        // Uppdatera skotträknare baserat på deltaTime
-        if (fireCounter > 0) {
-            fireCounter -= deltaTime * 60; // Anpassa till frames
-        }
-    }
-    
-    // Rita spelaren
-    function drawPlayer() {
-        // Spara canvas-tillstånd för transformationer
-        ctx.save();
-        
-        // Centrera på spelarens position
-        ctx.translate(player.x, player.y);
-        
-        // Lägg till en subtil gungande rörelse (använd gameTime istället för Date.now)
-        const wobble = Math.sin(gameTime * 3) * 1.5; // 3 rad/sec
-        ctx.rotate(wobble * 0.05);
-        
-        // Skapa en gradient för huvudkroppen
-        const bodyGradient = ctx.createLinearGradient(0, -player.size, 0, player.size);
-        bodyGradient.addColorStop(0, '#4fc3f7');
-        bodyGradient.addColorStop(0.5, '#0288d1');
-        bodyGradient.addColorStop(1, '#01579b');
-        
-        // Rita huvudkroppen (mer detaljerad form)
-        ctx.fillStyle = bodyGradient;
-        ctx.beginPath();
-        ctx.moveTo(0, -player.size);          // Nos
-        ctx.lineTo(-player.size * 0.4, -player.size * 0.2); // Vänster framkant
-        ctx.lineTo(-player.size, player.size * 0.2);  // Vänster vinge
-        ctx.lineTo(-player.size * 0.6, player.size * 0.6); // Vänster bakkant
-        ctx.lineTo(-player.size * 0.3, player.size * 0.4); // Vänster motorfäste
-        ctx.lineTo(0, player.size * 0.7);     // Mitt bak
-        ctx.lineTo(player.size * 0.3, player.size * 0.4); // Höger motorfäste
-        ctx.lineTo(player.size * 0.6, player.size * 0.6); // Höger bakkant
-        ctx.lineTo(player.size, player.size * 0.2);  // Höger vinge
-        ctx.lineTo(player.size * 0.4, -player.size * 0.2); // Höger framkant
-        ctx.closePath();
-        ctx.fill();
-        
-        // Motorflammor (animerade)
-        const flameTime = gameTime * 10; // 10 rad/sec
-        
-        // Vänster motor
-        const leftFlameSize = 10 + Math.sin(flameTime) * 5;
-        const leftFlameGradient = ctx.createLinearGradient(
-            -player.size * 0.3, player.size * 0.4,
-            -player.size * 0.3, player.size * 0.4 + leftFlameSize
-        );
-        leftFlameGradient.addColorStop(0, '#ffffff');
-        leftFlameGradient.addColorStop(0.3, '#64b5f6');
-        leftFlameGradient.addColorStop(0.6, '#1976d2');
-        leftFlameGradient.addColorStop(1, 'rgba(25, 118, 210, 0)');
-        
-        ctx.fillStyle = leftFlameGradient;
-        ctx.beginPath();
-        ctx.moveTo(-player.size * 0.4, player.size * 0.4);
-        ctx.lineTo(-player.size * 0.3, player.size * 0.4 + leftFlameSize);
-        ctx.lineTo(-player.size * 0.2, player.size * 0.4);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Höger motor
-        const rightFlameSize = 10 + Math.sin(flameTime + 1) * 5;
-        const rightFlameGradient = ctx.createLinearGradient(
-            player.size * 0.3, player.size * 0.4,
-            player.size * 0.3, player.size * 0.4 + rightFlameSize
-        );
-        rightFlameGradient.addColorStop(0, '#ffffff');
-        rightFlameGradient.addColorStop(0.3, '#64b5f6');
-        rightFlameGradient.addColorStop(0.6, '#1976d2');
-        rightFlameGradient.addColorStop(1, 'rgba(25, 118, 210, 0)');
-        
-        ctx.fillStyle = rightFlameGradient;
-        ctx.beginPath();
-        ctx.moveTo(player.size * 0.2, player.size * 0.4);
-        ctx.lineTo(player.size * 0.3, player.size * 0.4 + rightFlameSize);
-        ctx.lineTo(player.size * 0.4, player.size * 0.4);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Cockpit/fönster
-        const cockpitGradient = ctx.createRadialGradient(0, -player.size * 0.2, 1, 0, -player.size * 0.2, player.size * 0.4);
-        cockpitGradient.addColorStop(0, '#e1f5fe');
-        cockpitGradient.addColorStop(0.8, '#29b6f6');
-        cockpitGradient.addColorStop(1, '#0288d1');
-        
-        ctx.fillStyle = cockpitGradient;
-        ctx.beginPath();
-        ctx.ellipse(0, -player.size * 0.2, player.size * 0.25, player.size * 0.4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Detaljer på vingarna
-        ctx.strokeStyle = '#b3e5fc';
-        ctx.lineWidth = 2;
-        
-        // Vänster vingdetalj
-        ctx.beginPath();
-        ctx.moveTo(-player.size * 0.4, -player.size * 0.1);
-        ctx.lineTo(-player.size * 0.8, player.size * 0.1);
-        ctx.stroke();
-        
-        // Höger vingdetalj
-        ctx.beginPath();
-        ctx.moveTo(player.size * 0.4, -player.size * 0.1);
-        ctx.lineTo(player.size * 0.8, player.size * 0.1);
-        ctx.stroke();
-        
-        // Ljuseffekter på skeppet
-        ctx.fillStyle = '#e1f5fe';
-        
-        // Nos-ljus
-        ctx.beginPath();
-        ctx.arc(0, -player.size * 0.9, 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Vingspets-ljus
-        ctx.beginPath();
-        ctx.arc(-player.size * 0.95, player.size * 0.15, 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(player.size * 0.95, player.size * 0.15, 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Osårbarhetsblinkning
-        if (player.invincible && Math.floor(gameTime * 100) % 2) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.beginPath();
-            ctx.arc(0, 0, player.size * 1.2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Rita sköld om aktiv
-        if (player.powerUps.shield) {
-            const shieldGlow = 0.5 + Math.sin(gameTime * 200) * 0.2;
-            const shieldGradient = ctx.createRadialGradient(0, 0, player.size, 0, 0, player.size + 15);
-            shieldGradient.addColorStop(0, `rgba(0, 255, 255, 0)`);
-            shieldGradient.addColorStop(0.5, `rgba(0, 255, 255, ${shieldGlow * 0.2})`);
-            shieldGradient.addColorStop(0.8, `rgba(0, 255, 255, ${shieldGlow * 0.5})`);
-            shieldGradient.addColorStop(1, `rgba(0, 255, 255, 0)`);
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const company = document.getElementById('company').value;
+            const score = parseInt(document.getElementById('score-input').value);
             
-            ctx.fillStyle = shieldGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, player.size + 15, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.strokeStyle = `rgba(0, 255, 255, ${shieldGlow})`;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, 0, player.size + 10, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-        
-        // Återställ canvas-tillstånd
-        ctx.restore();
-    }
-    
-    // Skapa en ny fiende
-    function spawnEnemy() {
-        // Slumpmässigt välja fiendtyp baserat på nivå
-        let type, size, speed, health, color, points;
-        
-        const rand = Math.random();
-        
-        if (rand < 0.1 + gameState.level * 0.02) {
-            // Tank (sällsynt i början, vanligare på högre nivåer)
-            type = ENEMY_TYPES.TANK;
-            size = 30;
-            speed = 1;
-            health = 3;
-            color = '#ff9800';
-            points = 30;
-        } else if (rand < 0.3 + gameState.level * 0.03) {
-            // Fast (något vanligare)
-            type = ENEMY_TYPES.FAST;
-            size = 15;
-            speed = 3;
-            health = 1;
-            color = '#00ff00';
-            points = 20;
-        } else {
-            // Basic (vanligast)
-            type = ENEMY_TYPES.BASIC;
-            size = 20;
-            speed = 2;
-            health = 1;
-            color = '#ff0000';
-            points = 10;
-        }
-        
-        const enemy = {
-            x: Math.random() * (canvas.width - size * 2) + size,
-            y: -size,
-            size: size,
-            speed: speed,
-            health: health,
-            maxHealth: health,
-            type: type,
-            color: color,
-            points: points
-        };
-        
-        enemies.push(enemy);
-    }
-    
-    // Uppdatera fiender
-    function updateEnemies() {
-        // Uppdatera befintliga fiender
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            const enemy = enemies[i];
-            
-            // Konvertera pixlar per frame till pixlar per sekund
-            const enemySpeedPerSecond = enemy.speed * 60;
-            
-            // Flytta fienden nedåt
-            enemy.y += enemySpeedPerSecond * deltaTime;
-            
-            // Ta bort fiender som lämnar skärmen
-            if (enemy.y > canvas.height + enemy.size) {
-                enemies.splice(i, 1);
-            }
-        }
-        
-        // Skapa nya fiender baserat på deltaTime
-        spawnCounter -= deltaTime * 60; // Anpassa till frames
-        
-        if (spawnCounter <= 0) {
-            spawnEnemy();
-            spawnCounter = SPAWN_RATE;
-        }
-    }
-    
-    // Rita fiender
-    function drawEnemies() {
-        for (let enemy of enemies) {
-            // Välj ritfunktion baserat på fiendtyp
-            if (enemy.type === ENEMY_TYPES.BASIC) {
-                drawBasicEnemy(enemy);
-            } else if (enemy.type === ENEMY_TYPES.FAST) {
-                drawFastEnemy(enemy);
-            } else if (enemy.type === ENEMY_TYPES.TANK) {
-                drawTankEnemy(enemy);
-            }
-        }
-    }
-    
-    // Rita basic-fiende
-    function drawBasicEnemy(enemy) {
-        // Spara canvas-tillstånd för transformationer
-        ctx.save();
-        
-        // Centrera på fiendens position
-        ctx.translate(enemy.x, enemy.y);
-        
-        // Lägg till en gungande rörelse som ser lite klumpig ut
-        const wobble = Math.sin(gameTime * 3 + enemy.x) * 3;
-        const tilt = Math.cos(gameTime * 5) * 0.2;
-        ctx.rotate(tilt);
-        ctx.translate(wobble, 0);
-        
-        // Huvudkropp - en rund, lite tillplattad form
-        const bodyGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, enemy.size);
-        bodyGradient.addColorStop(0, '#ff9966');
-        bodyGradient.addColorStop(0.6, '#ff6633');
-        bodyGradient.addColorStop(1, '#cc3300');
-        
-        ctx.fillStyle = bodyGradient;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, enemy.size, enemy.size * 0.8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Ögon (stora, uttrycksfulla)
-        const eyeSize = enemy.size * 0.3;
-        const eyeDistance = enemy.size * 0.4;
-        
-        // Ögonvitor
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(-eyeDistance, -enemy.size * 0.1, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(eyeDistance, -enemy.size * 0.1, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Pupiller (rör sig runt lite slumpmässigt)
-        const pupilOffset = Math.sin(gameTime * 1000) * (eyeSize * 0.3);
-        const pupilOffsetY = Math.cos(gameTime * 800) * (eyeSize * 0.3);
-        
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(-eyeDistance + pupilOffset, -enemy.size * 0.1 + pupilOffsetY, eyeSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(eyeDistance + pupilOffset, -enemy.size * 0.1 + pupilOffsetY, eyeSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Ögonbryn (ändrar uttryck baserat på tid)
-        const browAngle = Math.sin(gameTime * 2000) * 0.5;
-        ctx.strokeStyle = '#cc3300';
-        ctx.lineWidth = 3;
-        
-        // Vänster ögonbryn
-        ctx.beginPath();
-        ctx.moveTo(-eyeDistance - eyeSize, -enemy.size * 0.3 + browAngle * 5);
-        ctx.lineTo(-eyeDistance + eyeSize, -enemy.size * 0.3 - browAngle * 5);
-        ctx.stroke();
-        
-        // Höger ögonbryn
-        ctx.beginPath();
-        ctx.moveTo(eyeDistance - eyeSize, -enemy.size * 0.3 - browAngle * 5);
-        ctx.lineTo(eyeDistance + eyeSize, -enemy.size * 0.3 + browAngle * 5);
-        ctx.stroke();
-        
-        // Mun (ändrar form över tid)
-        const mouthWidth = enemy.size * 0.7;
-        const mouthHeight = enemy.size * 0.2 + Math.sin(gameTime * 500) * enemy.size * 0.1;
-        
-        ctx.fillStyle = '#990000';
-        ctx.beginPath();
-        ctx.ellipse(0, enemy.size * 0.3, mouthWidth, mouthHeight, 0, 0, Math.PI);
-        ctx.fill();
-        
-        // Tänder (komiskt stora)
-        ctx.fillStyle = '#ffffff';
-        const teethCount = 4;
-        const teethWidth = mouthWidth * 2 / teethCount;
-        
-        for (let i = 0; i < teethCount; i++) {
-            const teethX = -mouthWidth + teethWidth * (i + 0.5);
-            ctx.fillRect(teethX, enemy.size * 0.3, teethWidth * 0.7, enemy.size * 0.15);
-        }
-        
-        // Antenner (vippande)
-        const antennaWobble = Math.sin(gameTime * 200) * 0.3;
-        ctx.strokeStyle = '#cc3300';
-        ctx.lineWidth = 2;
-        
-        // Vänster antenn
-        ctx.beginPath();
-        ctx.moveTo(-enemy.size * 0.5, -enemy.size * 0.5);
-        ctx.quadraticCurveTo(
-            -enemy.size * 0.7, -enemy.size * 0.8 + antennaWobble * 10,
-            -enemy.size * 0.9, -enemy.size * 0.7
-        );
-        ctx.stroke();
-        
-        // Höger antenn
-        ctx.beginPath();
-        ctx.moveTo(enemy.size * 0.5, -enemy.size * 0.5);
-        ctx.quadraticCurveTo(
-            enemy.size * 0.7, -enemy.size * 0.8 - antennaWobble * 10,
-            enemy.size * 0.9, -enemy.size * 0.7
-        );
-        ctx.stroke();
-        
-        // Antennbollar
-        ctx.fillStyle = '#ff3300';
-        ctx.beginPath();
-        ctx.arc(-enemy.size * 0.9, -enemy.size * 0.7, enemy.size * 0.15, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(enemy.size * 0.9, -enemy.size * 0.7, enemy.size * 0.15, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Små armar som viftar
-        const armWave = Math.sin(gameTime * 300) * 0.5;
-        
-        // Vänster arm
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(-enemy.size * 0.8, 0);
-        ctx.quadraticCurveTo(
-            -enemy.size * 1.2, enemy.size * 0.2,
-            -enemy.size * 1.1, enemy.size * 0.4 + armWave * 10
-        );
-        ctx.stroke();
-        
-        // Höger arm
-        ctx.beginPath();
-        ctx.moveTo(enemy.size * 0.8, 0);
-        ctx.quadraticCurveTo(
-            enemy.size * 1.2, enemy.size * 0.2,
-            enemy.size * 1.1, enemy.size * 0.4 - armWave * 10
-        );
-        ctx.stroke();
-        
-        // Små händer
-        ctx.fillStyle = '#ff6633';
-        ctx.beginPath();
-        ctx.arc(-enemy.size * 1.1, enemy.size * 0.4 + armWave * 10, enemy.size * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(enemy.size * 1.1, enemy.size * 0.4 - armWave * 10, enemy.size * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Återställ canvas-tillstånd
-        ctx.restore();
-    }
-    
-    // Återställ drawFastEnemy till en enklare version som fungerar
-    function drawFastEnemy(enemy) {
-        // Spara canvas-tillstånd
-        ctx.save();
-        
-        // Centrera på fiendens position
-        ctx.translate(enemy.x, enemy.y);
-        
-        // Lägg till en enkel vibration för hastighet
-        const vibration = Math.sin(gameTime * 100) * 2;
-        ctx.translate(vibration, 0);
-        
-        // Rita en grön cirkel för fast-fiender
-        const gradient = ctx.createRadialGradient(0, 0, enemy.size * 0.3, 0, 0, enemy.size);
-        gradient.addColorStop(0, '#33cc33');
-        gradient.addColorStop(1, '#006600');
-        
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(0, 0, enemy.size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Rita ett stort öga
-        const eyeSize = enemy.size * 0.6;
-        
-        // Ögonvita
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(0, -enemy.size * 0.1, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Pupill
-        const pupilOffset = Math.sin(gameTime * 500) * (eyeSize * 0.3);
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(pupilOffset, -enemy.size * 0.1, eyeSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Visa hälsoindikator för fiender med mer än 1 HP
-        if (enemy.maxHealth > 1) {
-            const healthWidth = enemy.size * 2;
-            const healthHeight = 4;
-            const healthX = -healthWidth / 2;
-            const healthY = -enemy.size - 10;
-            
-            // Bakgrund för hälsomätare
-            ctx.fillStyle = '#333333';
-            ctx.fillRect(healthX, healthY, healthWidth, healthHeight);
-            
-            // Faktiskt hälsa
-            const healthPercent = enemy.health / enemy.maxHealth;
-            ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
-            ctx.fillRect(healthX, healthY, healthWidth * healthPercent, healthHeight);
-        }
-        
-        // Återställ canvas-tillstånd
-        ctx.restore();
-    }
-    
-    // Rita tank-fiende
-    function drawTankEnemy(enemy) {
-        // Spara canvas-tillstånd
-        ctx.save();
-        
-        // Centrera på fiendens position
-        ctx.translate(enemy.x, enemy.y);
-        
-        // Lägg till en tung, långsam gungning
-        const wobble = Math.sin(gameTime * 500) * 2;
-        ctx.translate(wobble, 0);
-        
-        // Huvudkropp - stor, kraftig blå form
-        const bodyGradient = ctx.createRadialGradient(0, 0, enemy.size * 0.3, 0, 0, enemy.size);
-        bodyGradient.addColorStop(0, '#4466ff');
-        bodyGradient.addColorStop(0.7, '#2244cc');
-        bodyGradient.addColorStop(1, '#112266');
-        
-        ctx.fillStyle = bodyGradient;
-        ctx.beginPath();
-        ctx.arc(0, 0, enemy.size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Rustning/pansar på kroppen
-        ctx.fillStyle = '#001155';
-        
-        // Övre pansarplåt
-        ctx.beginPath();
-        ctx.arc(0, -enemy.size * 0.5, enemy.size * 0.7, Math.PI, Math.PI * 2);
-        ctx.fill();
-        
-        // Nedre pansarplåt
-        ctx.beginPath();
-        ctx.arc(0, enemy.size * 0.5, enemy.size * 0.7, 0, Math.PI);
-        ctx.fill();
-        
-        // Sidopansar (vänster)
-        ctx.beginPath();
-        ctx.ellipse(-enemy.size * 0.7, 0, enemy.size * 0.3, enemy.size * 0.8, 0, -Math.PI/2, Math.PI/2);
-        ctx.fill();
-        
-        // Sidopansar (höger)
-        ctx.beginPath();
-        ctx.ellipse(enemy.size * 0.7, 0, enemy.size * 0.3, enemy.size * 0.8, 0, Math.PI/2, -Math.PI/2);
-        ctx.fill();
-        
-        // Ögon (två små, arga)
-        const eyeSize = enemy.size * 0.2;
-        const eyeDistance = enemy.size * 0.3;
-        const eyeY = -enemy.size * 0.15;
-        
-        // Ögonvitor
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(-eyeDistance, eyeY, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(eyeDistance, eyeY, eyeSize, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Pupiller (rör sig lite, ser arga ut)
-        const pupilOffset = Math.sin(gameTime * 800) * (eyeSize * 0.2);
-        
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(-eyeDistance + pupilOffset, eyeY, eyeSize * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(eyeDistance + pupilOffset, eyeY, eyeSize * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Ögonbryn (arga)
-        ctx.strokeStyle = '#001155';
-        ctx.lineWidth = 4;
-        
-        // Vänster ögonbryn
-        ctx.beginPath();
-        ctx.moveTo(-eyeDistance - eyeSize * 1.2, eyeY - eyeSize * 1.2);
-        ctx.lineTo(-eyeDistance + eyeSize * 0.8, eyeY - eyeSize * 0.5);
-        ctx.stroke();
-        
-        // Höger ögonbryn
-        ctx.beginPath();
-        ctx.moveTo(eyeDistance - eyeSize * 0.8, eyeY - eyeSize * 0.5);
-        ctx.lineTo(eyeDistance + eyeSize * 1.2, eyeY - eyeSize * 1.2);
-        ctx.stroke();
-        
-        // Mun (arg, med tänder)
-        const mouthWidth = enemy.size * 0.6;
-        const mouthHeight = enemy.size * 0.2;
-        const mouthY = enemy.size * 0.3;
-        
-        // Munnens form
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.ellipse(0, mouthY, mouthWidth, mouthHeight, 0, 0, Math.PI);
-        ctx.fill();
-        
-        // Tänder (stora, hotfulla)
-        ctx.fillStyle = '#ffffff';
-        const teethCount = 3;
-        const teethWidth = mouthWidth * 2 / (teethCount * 2);
-        
-        for (let i = 0; i < teethCount; i++) {
-            const teethX = -mouthWidth + teethWidth * (i * 2 + 1);
-            ctx.fillRect(teethX, mouthY - mouthHeight * 0.8, teethWidth, mouthHeight * 0.8);
-        }
-        
-        // Kraftfält/sköld-effekt (pulserande)
-        if (enemy.health > enemy.maxHealth / 2) {
-            const shieldPulse = 0.3 + Math.sin(gameTime * 300) * 0.1;
-            ctx.strokeStyle = `rgba(100, 150, 255, ${shieldPulse})`;
-            ctx.lineWidth = 3;
-            
-            ctx.beginPath();
-            ctx.arc(0, 0, enemy.size * 1.2, 0, Math.PI * 2);
-            ctx.stroke();
-            
-            // Små sköldsparks
-            if (Math.random() < 0.1) {
-                const sparkAngle = Math.random() * Math.PI * 2;
-                const sparkDist = enemy.size * 1.2;
-                const sparkX = Math.cos(sparkAngle) * sparkDist;
-                const sparkY = Math.sin(sparkAngle) * sparkDist;
-                const sparkSize = 2 + Math.random() * 4;
-                
-                ctx.fillStyle = 'rgba(150, 200, 255, 0.8)';
-                ctx.beginPath();
-                ctx.arc(sparkX, sparkY, sparkSize, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-        
-        // Visa hälsoindikator
-        const healthWidth = enemy.size * 2;
-        const healthHeight = 6;
-        const healthX = -healthWidth / 2;
-        const healthY = -enemy.size - 15;
-        
-        // Bakgrund för hälsomätare
-        ctx.fillStyle = '#333333';
-        ctx.fillRect(healthX, healthY, healthWidth, healthHeight);
-        
-        // Faktiskt hälsa
-        const healthPercent = enemy.health / enemy.maxHealth;
-        ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
-        ctx.fillRect(healthX, healthY, healthWidth * healthPercent, healthHeight);
-        
-        // Återställ canvas-tillstånd
-        ctx.restore();
-    }
-    
-    // Avfyra skott
-    function fireBullet() {
-        const bulletSpeed = 10;
-        const bulletSize = 5;
-        
-        // Skapa ett nytt skott
-        const newBullet = {
-            x: player.x,
-            y: player.y - player.size,
-            size: bulletSize,
-            speed: bulletSpeed,
-            piercing: player.powerUps.piercingShots // Ny egenskap för genomträngande skott
-        };
-        
-        // Om spelaren har genomträngande skott, ändra utseendet
-        if (player.powerUps.piercingShots) {
-            newBullet.size = 3; // Tunnare
-            newBullet.height = 15; // Längre
-            newBullet.color = '#ffcc00'; // Gul färg
-        }
-        
-        // Lägg till skottet i arrayen
-        bullets.push(newBullet);
-        
-        // Om spelaren har dubbel eld, skapa ett till skott
-        if (player.powerUps.doubleFire) {
-            const secondBullet = {
-                x: player.x,
-                y: player.y - player.size,
-                size: bulletSize,
-                speed: bulletSpeed,
-                piercing: player.powerUps.piercingShots
-            };
-            
-            // Om spelaren har genomträngande skott, ändra utseendet
-            if (player.powerUps.piercingShots) {
-                secondBullet.size = 3;
-                secondBullet.height = 15;
-                secondBullet.color = '#ffcc00';
-            }
-            
-            // Lägg till det andra skottet
-            bullets.push(secondBullet);
-            
-            // Placera skotten bredvid varandra
-            newBullet.x -= 10;
-            secondBullet.x += 10;
-        }
-    }
-    
-    // Uppdatera skott
-    function updateBullets() {
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            // Konvertera pixlar per frame till pixlar per sekund
-            const bulletSpeedPerSecond = bullets[i].speed * 60;
-            
-            // Flytta skottet uppåt
-            bullets[i].y -= bulletSpeedPerSecond * deltaTime;
-            
-            // Ta bort skott som lämnar skärmen
-            if (bullets[i].y < -bullets[i].size) {
-                bullets.splice(i, 1);
-            }
-        }
-    }
-    
-    // Rita skott
-    function drawBullets() {
-        for (let bullet of bullets) {
-            // Bestäm färg baserat på typ
-            if (bullet.color) {
-                ctx.fillStyle = bullet.color;
-            } else if (bullet.piercing) {
-                ctx.fillStyle = '#ffcc00'; // Gul för genomträngande skott
-            } else {
-                ctx.fillStyle = '#ffffff'; // Vit för vanliga skott
-            }
-            
-            // Rita skott baserat på typ
-            if (bullet.piercing) {
-                // Rita genomträngande skott (längre, tunnare)
-                ctx.fillRect(bullet.x - bullet.size / 2, bullet.y - bullet.height / 2, bullet.size, bullet.height);
-                
-                // Lägg till ljusspår
-                const trailGradient = ctx.createLinearGradient(
-                    bullet.x, bullet.y + bullet.height / 2,
-                    bullet.x, bullet.y - bullet.height / 2
-                );
-                trailGradient.addColorStop(0, 'rgba(255, 204, 0, 0)');
-                trailGradient.addColorStop(0.5, 'rgba(255, 204, 0, 0.5)');
-                trailGradient.addColorStop(1, 'rgba(255, 204, 0, 0.8)');
-                
-                ctx.fillStyle = trailGradient;
-                ctx.fillRect(bullet.x - bullet.size, bullet.y, bullet.size * 2, bullet.height / 2);
-            } else {
-                // Rita vanligt skott (cirkel)
-                ctx.beginPath();
-                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-    
-    // Skapa power-up
-    function spawnPowerUp(x, y) {
-        // Välj en slumpmässig power-up typ
-        const types = Object.values(POWERUP_TYPES);
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        
-        // Bestäm färg baserat på typ
-        let color;
-        switch (randomType) {
-            case POWERUP_TYPES.DOUBLE_FIRE:
-                color = '#ff9900'; // Orange/gul
-                break;
-            case POWERUP_TYPES.FAST_FIRE:
-                color = '#00ff00'; // Grön
-                break;
-            case POWERUP_TYPES.SHIELD:
-                color = '#00ffff'; // Cyan
-                break;
-            case POWERUP_TYPES.AUTO_TURRET:
-                color = '#ff6600'; // Orange
-                break;
-            case POWERUP_TYPES.PIERCING_SHOTS:
-                color = '#ffcc00'; // Gul
-                break;
-        }
-        
-        // Skapa power-up objekt
-        const powerUp = {
-            x: x,
-            y: y,
-            size: 10,
-            speed: 2,
-            type: randomType,
-            color: color
-        };
-        
-        // Lägg till i power-ups array
-        powerUps.push(powerUp);
-    }
-    
-    // Uppdatera power-ups
-    function updatePowerUps() {
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            const powerUp = powerUps[i];
-            
-            // Konvertera pixlar per frame till pixlar per sekund
-            const powerUpSpeedPerSecond = powerUp.speed * 60;
-            
-            // Flytta power-up nedåt
-            powerUp.y += powerUpSpeedPerSecond * deltaTime;
-            
-            // Ta bort power-up som lämnar skärmen
-            if (powerUp.y > canvas.height + powerUp.size) {
-                powerUps.splice(i, 1);
-            }
-        }
-    }
-    
-    // Rita power-ups
-    function drawPowerUps() {
-        for (let powerUp of powerUps) {
-            ctx.fillStyle = powerUp.color;
-            
-            // Rita en diamant
-            ctx.beginPath();
-            ctx.moveTo(powerUp.x, powerUp.y - powerUp.size);
-            ctx.lineTo(powerUp.x + powerUp.size, powerUp.y);
-            ctx.lineTo(powerUp.x, powerUp.y + powerUp.size);
-            ctx.lineTo(powerUp.x - powerUp.size, powerUp.y);
-            ctx.closePath();
-            ctx.fill();
-        }
-    }
-    
-    // Ändra checkCollisions() till att endast hantera skott-fiende-kollisioner
-    function checkCollisions() {
-        // Kontrollera kollisioner mellan skott och fiender
-        for (let i = bullets.length - 1; i >= 0; i--) {
-            const bullet = bullets[i];
-            let bulletHit = false;
-            
-            for (let j = enemies.length - 1; j >= 0; j--) {
-                const enemy = enemies[j];
-                
-                const distance = Math.sqrt(
-                    Math.pow(bullet.x - enemy.x, 2) + 
-                    Math.pow(bullet.y - enemy.y, 2)
-                );
-                
-                if (distance < bullet.size + enemy.size) {
-                    // Träff! Minska fiendens hälsa
-                    enemy.health--;
+            // Spara till databas
+            if (window.saveScoreToDatabase) {
+                saveScoreToDatabase({
+                    name: name,
+                    score: score,
+                    email: email || null,
+                    company: company || null,
+                    created_at: new Date().toISOString()
+                }).then(() => {
+                    // Göm formuläret
+                    document.getElementById('highscore-form').classList.add('hidden');
                     
-                    // Om fienden är död
-                    if (enemy.health <= 0) {
-                        // Slumpmässig chans att fienden droppar en power-up
-                        if (Math.random() < POWERUP_SPAWN_CHANCE) {
-                            spawnPowerUp(enemy.x, enemy.y);
-                        }
-                        
-                        // Ta bort fienden
-                        enemies.splice(j, 1);
-                        
-                        // Öka poäng baserat på fiendtyp
-                        gameState.score += enemy.points;
-                        
-                        // Öka antal besegrade fiender
-                        enemiesDefeated++;
-                        
-                        // Kolla om det är dags att gå upp en nivå
-                        if (enemiesDefeated >= ENEMIES_PER_LEVEL) {
-                            levelUp();
-                        }
-                        
-                        // Uppdatera kombo
-                        comboCount++;
-                        comboTimer = COMBO_TIME;
-                        
-                        // Lägg till detta inuti if (enemy.health <= 0) { ... }, precis efter enemiesDefeated++;
-                        totalEnemiesDefeated++;
-
-                        // Uppdatera kill-challenge om aktiv
-                        if (activeChallenge && activeChallenge.type === CHALLENGE_TYPES.KILL_FAST) {
-                            challengeProgress++;
-                        }
-                    }
-                    
-                    // Om skottet inte är genomträngande, ta bort det
-                    if (!bullet.piercing) {
-                        bullets.splice(i, 1);
-                        bulletHit = true;
-                        break; // Avsluta inre loopen eftersom skottet är borta
-                    }
-                    // Annars fortsätt loopen för att låta skottet träffa fler fiender
-                }
-            }
-            
-            // Om skottet redan har tagits bort, hoppa över resten
-            if (bulletHit) continue;
-        }
-    }
-    
-    // Modifiera checkPlayerCollisions() för att inkludera explosionseffekten
-    function checkPlayerCollisions() {
-        // Om spelaren är osårbar, kontrollera inte fiendekollisioner
-        if (!player.invincible) {
-            // Kontrollera kollision med fiender
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const enemy = enemies[i];
-                
-                const distance = Math.sqrt(
-                    Math.pow(player.x - enemy.x, 2) + 
-                    Math.pow(player.y - enemy.y, 2)
-                );
-                
-                if (distance < player.size + enemy.size) {
-                    // LÄGG TILL EXPLOSIONSEFFEKTEN HÄR
-                    createPlayerHitExplosion(player.x, player.y);
-                    
-                    // Kollision! Om spelaren har sköld, förstör fienden
-                    if (player.powerUps.shield) {
-                        player.powerUps.shield = false; // Ta bort skölden
-                        enemies.splice(i, 1); // Ta bort fienden
-                    } else {
-                        // Minska spelarens liv
-                        gameState.lives--;
-                        
-                        // Kontrollera om spelet är slut
-                        if (gameState.lives <= 0) {
-                            gameState.gameOver = true;
-                        } else {
-                            // Gör spelaren osårbar en stund
-                            player.invincible = true;
-                            setTimeout(() => player.invincible = false, 2000);
-                        }
-                        
-                        // Ta bort fienden
-                        enemies.splice(i, 1);
-                    }
-                    
-                    // Återställ kombo
-                    comboCount = 0;
-                    comboTimer = 0;
-                    
-                    break;
-                }
-            }
-        }
-        
-        // Kontrollera kollision med power-ups
-        for (let i = powerUps.length - 1; i >= 0; i--) {
-            const powerUp = powerUps[i];
-            
-            const distance = Math.sqrt(
-                Math.pow(player.x - powerUp.x, 2) + 
-                Math.pow(player.y - powerUp.y, 2)
-            );
-            
-            if (distance < player.size + powerUp.size) {
-                // Aktivera power-up
-                player.powerUps[powerUp.type] = true;
-                
-                // Särskild hantering för auto turret
-                if (powerUp.type === POWERUP_TYPES.AUTO_TURRET && turrets.length === 0) {
-                    createTurret();
-                }
-                
-                // Sätt timer för att inaktivera power-up efter en tid (utom sköld)
-                if (powerUp.type !== POWERUP_TYPES.SHIELD) {
-                    const duration = powerUp.type === POWERUP_TYPES.AUTO_TURRET ? 12000 : 10000;
-                    
-                    setTimeout(() => {
-                        player.powerUps[powerUp.type] = false;
-                    }, duration);
-                }
-                
-                // Ta bort power-up
-                powerUps.splice(i, 1);
-            }
-        }
-    }
-    
-    // Rita game over-skärmen
-    function drawGameOver() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '48px Arial Bold';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
-        
-        ctx.font = '24px Arial';
-        ctx.fillText(`Din poäng: ${gameState.score}`, canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText('Tryck på MELLANSLAG för att spela igen', canvas.width / 2, canvas.height / 2 + 70);
-        
-        // Återställ textjustering
-        ctx.textAlign = 'left';
-    }
-    
-    // Återställ spelet för att börja om
-    function resetGame() {
-        // Återställ spelarposition
-        player.x = canvas.width / 2;
-        player.y = canvas.height - 50;
-        player.invincible = false;
-        player.speed = 5;
-        player.powerUps = {
-            doubleFire: false,
-            fastFire: false,
-            shield: false,
-            autoTurret: false,
-            piercingShots: false
-        };
-        
-        // Återställ spelvariabler
-        gameState.score = 0;
-        gameState.lives = 3;
-        gameState.level = 1;
-        gameState.gameOver = false;
-        
-        // Återställ nivåvariabler
-        enemiesDefeated = 0;
-        spawnCounter = 0;
-        
-        // Återställ fiender och skott
-        enemies.length = 0;
-        bullets.length = 0;
-        powerUps.length = 0;
-        turrets.length = 0;
-        
-        // Reset achievements
-        for (let achievement of achievements) {
-            achievement.unlocked = false;
-        }
-        comboCount = 0;
-        comboTimer = 0;
-        comboPoints = 0;
-        showComboMessage = false;
-        comboMessageTimer = 0;
-        totalEnemiesDefeated = 0;
-        showAchievementMessage = false;
-        achievementMessageTimer = 0;
-        currentAchievement = null;
-    }
-    
-    // Funktion för att gå upp en nivå
-    function levelUp() {
-        gameState.level++;
-        enemiesDefeated = 0;
-        
-        // Visa meddelande om ny nivå
-        levelMessage = `NIVÅ ${gameState.level}!`;
-        levelMessageTimer = 180; // Visa i 3 sekunder
-        
-        // Öka spelarens hastighet något för varje nivå (upp till en gräns)
-        if (player.speed < 8) {
-            player.speed += 0.2;
-        }
-    }
-    
-    // Visa nivåmeddelande
-    let levelMessage = "";
-    let levelMessageTimer = 0;
-    
-    // Skapa en funktion för att hantera turrets
-    function createTurret() {
-        // Skapa två turrets
-        for (let i = 0; i < 2; i++) {
-            const angle = i * Math.PI; // Placera dem på motsatta sidor
-            
-            const turret = {
-                angle: angle,
-                distance: 40, // Avstånd från spelaren
-                rotationSpeed: 0.02, // Hur snabbt de roterar runt spelaren
-                fireCounter: 0,
-                fireRate: 60, // Skjuter var 60:e frame
-                size: 8
-            };
-            
-            turrets.push(turret);
-        }
-    }
-    
-    // Uppdatera turrets
-    function updateTurrets() {
-        // Om spelaren inte har auto turret power-up, töm arrayen
-        if (!player.powerUps.autoTurret) {
-            turrets.length = 0;
-            return;
-        }
-        
-        // Uppdatera varje turret
-        for (let turret of turrets) {
-            // Uppdatera position (rotera runt spelaren)
-            turret.angle += turret.rotationSpeed;
-            
-            // Uppdatera skjutning
-            turret.fireCounter++;
-            if (turret.fireCounter >= turret.fireRate) {
-                // Skjut ett skott
-                const turretX = player.x + Math.cos(turret.angle) * turret.distance;
-                const turretY = player.y + Math.sin(turret.angle) * turret.distance;
-                
-                const bullet = {
-                    x: turretX,
-                    y: turretY - 10,
-                    size: 4,
-                    speed: 8,
-                    fromTurret: true,
-                    color: '#ff6600' // Orange färg för turret-skott
-                };
-                
-                bullets.push(bullet);
-                turret.fireCounter = 0;
-            }
-        }
-    }
-    
-    // Rita turrets
-    function drawTurrets() {
-        if (!player.powerUps.autoTurret) return;
-        
-        for (let turret of turrets) {
-            // Beräkna position
-            const x = player.x + Math.cos(turret.angle) * turret.distance;
-            const y = player.y + Math.sin(turret.angle) * turret.distance;
-            
-            // Rita turret
-            ctx.save();
-            ctx.translate(x, y);
-            
-            // Kropp
-            const bodyGradient = ctx.createRadialGradient(0, 0, 1, 0, 0, turret.size);
-            bodyGradient.addColorStop(0, '#ffaa66');
-            bodyGradient.addColorStop(1, '#ff6600');
-            
-            ctx.fillStyle = bodyGradient;
-            ctx.beginPath();
-            ctx.arc(0, 0, turret.size, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Kanon
-            ctx.fillStyle = '#cc5500';
-            ctx.fillRect(-2, -turret.size - 5, 4, 8);
-            
-            // Glödande effekt
-            const glowSize = turret.size * 1.3;
-            const glowOpacity = 0.3 + Math.sin(gameTime * 200) * 0.1;
-            
-            ctx.fillStyle = `rgba(255, 150, 0, ${glowOpacity})`;
-            ctx.beginPath();
-            ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.restore();
-        }
-    }
-    
-    // Lägg till denna funktion för att hantera kombo-systemet
-    function updateCombo() {
-        // Minska kombo-timern om den är aktiv
-        if (comboTimer > 0) {
-            comboTimer -= deltaTime * 60; // Konvertera till frames
-            
-            // Om timern når noll, återställ kombon
-            if (comboTimer <= 0 && comboCount > 2) {
-                // Visa meddelande om kombon
-                showComboMessage = true;
-                comboMessageTimer = 120; // Visa i 2 sekunder
-                
-                // Ge bonuspoäng baserat på kombon
-                const bonus = comboCount * comboCount * 10;
-                gameState.score += bonus;
-                comboPoints = bonus;
-                
-                // Återställ kombo
-                comboCount = 0;
-            }
-        }
-        
-        // Uppdatera kombo-meddelandetimern
-        if (comboMessageTimer > 0) {
-            comboMessageTimer -= deltaTime * 60; // Konvertera till frames
-            if (comboMessageTimer <= 0) {
-                showComboMessage = false;
-            }
-        }
-    }
-    
-    // Lägg till en funktion för att kontrollera achievements
-    function checkAchievements() {
-        // Temporär array för nyligen upplåsta achievements
-        const newlyUnlocked = [];
-        
-        // Kontrollera varje achievement
-        for (let achievement of achievements) {
-            if (!achievement.unlocked) {
-                let unlocked = false;
-                
-                // Kontrollera olika typer av achievements
-                switch (achievement.id) {
-                    case 'lvl5':
-                        if (gameState.level >= 5) unlocked = true;
-                        break;
-                    case 'score1000':
-                        if (gameState.score >= 1000) unlocked = true;
-                        break;
-                    case 'combo10':
-                        if (comboCount >= 10) unlocked = true;
-                        break;
-                    case 'kills50':
-                        if (totalEnemiesDefeated >= 50) unlocked = true;
-                        break;
-                    case 'allpowerups':
-                        let activePowerUps = 0;
-                        for (let key in player.powerUps) {
-                            if (player.powerUps[key]) activePowerUps++;
-                        }
-                        if (activePowerUps >= 3) unlocked = true;
-                        break;
-                }
-                
-                // Om achievement är upplåst, markera det
-                if (unlocked) {
-                    achievement.unlocked = true;
-                    newlyUnlocked.push(achievement);
-                    
-                    // Ge bonus poäng
-                    gameState.score += 100;
-                }
-            }
-        }
-        
-        // Visa meddelande om något achievement låstes upp
-        if (newlyUnlocked.length > 0) {
-            currentAchievement = newlyUnlocked[0]; // Visa bara det första om flera låstes upp samtidigt
-            showAchievementMessage = true;
-            achievementMessageTimer = 180; // Visa i 3 sekunder
-        }
-        
-        // Uppdatera achievement-meddelandetimern
-        if (achievementMessageTimer > 0) {
-            achievementMessageTimer -= deltaTime * 60; // Konvertera till frames
-            if (achievementMessageTimer <= 0) {
-                showAchievementMessage = false;
-            }
-        }
-    }
-    
-    // Funktion för att skapa en ny utmaning
-    function createChallenge() {
-        // Välj en slumpmässig utmaningstyp
-        const challengeTypes = Object.values(CHALLENGE_TYPES);
-        const randomType = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
-        
-        // Skapa utmaning
-        activeChallenge = {
-            type: randomType,
-            timeLimit: 600, // 10 sekunder
-            target: randomType === CHALLENGE_TYPES.KILL_FAST ? 5 : 300, // 5 fiender eller 5 sekunder (300 frames)
-            reward: 200 // Poäng för att klara utmaningen
-        };
-        
-        challengeProgress = 0;
-        challengeTimer = activeChallenge.timeLimit;
-        challengeCompleted = false;
-        challengeMessageTimer = 180; // Visa meddelande i 3 sekunder
-    }
-    
-    // Funktion för att uppdatera aktiv utmaning
-    function updateChallenge() {
-        // Om det inte finns någon aktiv utmaning och spelaren har kommit till en ny nivå, skapa en
-        if (!activeChallenge && !challengeCompleted && gameState.level > 1 && gameState.level !== lastChallengeLevel) {
-            createChallenge();
-            lastChallengeLevel = gameState.level;
-            return;
-        }
-        
-        // Om det inte finns någon aktiv utmaning, avsluta
-        if (!activeChallenge) return;
-        
-        // Uppdatera utmaningstimer
-        challengeTimer--;
-        
-        // Kontrollera om utmaningstiden har gått ut
-        if (challengeTimer <= 0) {
-            // Om utmaningen är klar
-            if (challengeProgress >= activeChallenge.target) {
-                challengeCompleted = true;
-                gameState.score += activeChallenge.reward;
-                challengeMessageTimer = 180; // Visa meddelande i 3 sekunder
-            }
-            
-            // Avsluta utmaningen
-            activeChallenge = null;
-            return;
-        }
-        
-        // Uppdatera framsteg baserat på typ
-        switch (activeChallenge.type) {
-            case CHALLENGE_TYPES.KILL_FAST:
-                // Uppdateras i checkCollisions-funktionen
-                break;
-            case CHALLENGE_TYPES.DODGE:
-                // Öka framsteg om spelaren inte skjuter
-                if (!keys[' ']) {
-                    challengeProgress++;
-                } else {
-                    // Återställ framsteg om spelaren skjuter
-                    challengeProgress = 0;
-                }
-                break;
-            case CHALLENGE_TYPES.BOTTOM_SCREEN:
-                // Öka framsteg om spelaren är på nedre halvan av skärmen
-                if (player.y > canvas.height / 2) {
-                    challengeProgress++;
-                } else {
-                    // Återställ framsteg om spelaren går upp
-                    challengeProgress = 0;
-                }
-                break;
-        }
-        
-        // Kontrollera om utmaningen är klar
-        if (challengeProgress >= activeChallenge.target) {
-            challengeCompleted = true;
-            gameState.score += activeChallenge.reward;
-            challengeMessageTimer = 180; // Visa meddelande i 3 sekunder
-            activeChallenge = null;
-        }
-        
-        // Uppdatera meddelandetimer
-        if (challengeMessageTimer > 0) {
-            challengeMessageTimer -= deltaTime * 60; // Konvertera till frames
-        }
-    }
-    
-    // 2. Modifiera createPlayerHitExplosion för att lägga till i arrayen istället för egen loop
-    function createPlayerHitExplosion(x, y) {
-        // Parametrar för spelar-träff-explosion
-        const numParticles = 25;
-        const particleSpeed = 3;
-        const particleSize = 5;
-        
-        // Skapa en explosionseffekt-objekt
-        const hitEffect = {
-            particles: [],
-            flash: {
-                x: x,
-                y: y,
-                size: 10,
-                maxSize: 40,
-                alpha: 1,
-                growSpeed: 3
-            },
-            active: true
-        };
-        
-        // Skapa partiklar i slumpmässiga riktningar
-        for (let i = 0; i < numParticles; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * particleSpeed + 1.5;
-            
-            // Använd mer livliga färger
-            let particleColor;
-            const colorType = Math.random();
-            
-            if (colorType < 0.6) {
-                // 60% chans för orange/röd
-                particleColor = `rgba(255, ${Math.floor(Math.random() * 100)}, 0, 1)`;
-            } else if (colorType < 0.9) {
-                // 30% chans för gul
-                particleColor = `rgba(255, ${Math.floor(Math.random() * 55) + 200}, 0, 1)`;
-            } else {
-                // 10% chans för vit
-                particleColor = `rgba(255, 255, 255, 1)`;
-            }
-            
-            hitEffect.particles.push({
-                x: x,
-                y: y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                size: Math.random() * particleSize + 2,
-                color: particleColor,
-                lifetime: 0,
-                maxLifetime: Math.random() * 40 + 15
-            });
-        }
-        
-        // Lägg till i den globala arrayen
-        hitEffects.push(hitEffect);
-    }
-    
-    // 3. Lägg till en funktion för att uppdatera och rendera alla hitEffects
-    function updateHitEffects() {
-        for (let i = hitEffects.length - 1; i >= 0; i--) {
-            const effect = hitEffects[i];
-            let effectActive = false;
-            
-            // Rita initial blixt/ring
-            if (effect.flash && effect.flash.size < effect.flash.maxSize) {
-                effectActive = true;
-                effect.flash.size += effect.flash.growSpeed;
-                effect.flash.alpha *= 0.9;
-                
-                ctx.beginPath();
-                ctx.arc(effect.flash.x, effect.flash.y, effect.flash.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 200, 50, ${effect.flash.alpha})`;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.arc(effect.flash.x, effect.flash.y, effect.flash.size * 0.6, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 200, ${effect.flash.alpha * 1.2})`;
-                ctx.fill();
-            }
-            
-            // Uppdatera och rita partiklar
-            for (let j = 0; j < effect.particles.length; j++) {
-                const particle = effect.particles[j];
-                
-                // Uppdatera position
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                
-                // Lägg till lite resistans
-                particle.vx *= 0.98;
-                particle.vy *= 0.98;
-                
-                // Uppdatera livstid
-                particle.lifetime++;
-                
-                // Kontrollera om partikeln fortfarande lever
-                if (particle.lifetime < particle.maxLifetime) {
-                    effectActive = true;
-                    
-                    // Rita partikeln med avtagande opacitet
-                    const opacity = 1 - (particle.lifetime / particle.maxLifetime);
-                    ctx.fillStyle = particle.color.replace('1)', `${opacity})`);
-                    ctx.beginPath();
-                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-            
-            // Ta bort effekten om alla partiklar har försvunnit
-            if (!effectActive) {
-                hitEffects.splice(i, 1);
-            }
-        }
-    }
-    
-    // Huvudspelloopen
-    function gameLoop(timestamp) {
-        // Beräkna deltaTime i sekunder (för enklare beräkningar)
-        if (!lastTime) lastTime = timestamp;
-        deltaTime = (timestamp - lastTime) / 1000; // Konvertera till sekunder
-        
-        // Sätt en maxgräns för deltaTime för att undvika extrema värden vid tabbyten etc.
-        if (deltaTime > 0.1) deltaTime = 0.1;
-        
-        lastTime = timestamp;
-        
-        // Rensa skärmen
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Uppdatera och rita stjärnor
-        updateStars();
-        drawStars();
-        
-        // Uppdatera explosionseffekter
-        updateHitEffects();
-        
-        // Hantera speltillstånd
-        if (!gameState.gameOver) {
-            // Uppdatera
-            updatePlayer();
-            updateBullets();
-            updateEnemies();
-            updatePowerUps();
-            updateTurrets();
-            updateCombo();
-            checkCollisions();
-            checkPlayerCollisions();
-            
-            // Rita
-            drawPowerUps();
-            drawEnemies();
-            drawBullets();
-            drawTurrets();
-            drawPlayer();
-            
-            // Visa nivåmeddelande om aktivt
-            if (levelMessageTimer > 0) {
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '24px Arial Bold';
-                ctx.textAlign = 'center';
-                ctx.fillText(levelMessage, canvas.width / 2, canvas.height / 2 - 100);
-                
-                levelMessageTimer--;
-                
-                // Återställ textjustering
-                ctx.textAlign = 'left';
-            }
-            
-            // Rita kombo-meddelande om aktivt
-            if (showComboMessage) {
-                ctx.textAlign = 'center';
-                ctx.font = '24px Arial Bold';
-                
-                // Bestäm färg baserat på kombo-storlek
-                let comboColor;
-                if (comboCount >= 10) comboColor = '#ff00ff'; // Lila för stora kombos
-                else if (comboCount >= 7) comboColor = '#ff0000'; // Röd för bra kombos
-                else if (comboCount >= 5) comboColor = '#ffaa00'; // Orange för ok kombos
-                else comboColor = '#ffff00'; // Gul för små kombos
-                
-                ctx.fillStyle = comboColor;
-                ctx.fillText(`${comboCount}x KOMBO! +${comboPoints}`, canvas.width / 2, canvas.height / 2 - 50);
-                
-                // Återställ textjustering
-                ctx.textAlign = 'left';
-            }
-            
-            // Rita achievement-meddelande om aktivt
-            if (showAchievementMessage && currentAchievement) {
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#4fc3f7';
-                ctx.font = '20px Arial Bold';
-                ctx.fillText(`${currentAchievement.icon} PRESTATION UPPLÅST! ${currentAchievement.icon}`, canvas.width / 2, canvas.height / 2 + 20);
-                ctx.font = '24px Arial Bold';
-                ctx.fillText(`${currentAchievement.title}`, canvas.width / 2, canvas.height / 2 + 50);
-                ctx.font = '16px Arial';
-                ctx.fillText(`${currentAchievement.description}`, canvas.width / 2, canvas.height / 2 + 75);
-                ctx.fillText(`+100 poäng`, canvas.width / 2, canvas.height / 2 + 95);
-                
-                // Återställ textjustering
-                ctx.textAlign = 'left';
-            }
-            
-            // Rita utmaningsinformation
-            if (activeChallenge || (challengeCompleted && challengeMessageTimer > 0)) {
-                ctx.textAlign = 'right';
-                ctx.font = '16px Arial';
-                
-                if (activeChallenge) {
-                    // Visa aktiv utmaning
-                    ctx.fillStyle = '#ffcc00';
-                    ctx.fillText(`Utmaning: ${activeChallenge.type}`, canvas.width - 20, 30);
-                    
-                    // Rita framstegsindikator
-                    const progressPercent = challengeProgress / activeChallenge.target;
-                    const progressWidth = 150;
-                    
-                    ctx.fillStyle = '#333333';
-                    ctx.fillRect(canvas.width - 20 - progressWidth, 40, progressWidth, 10);
-                    
-                    ctx.fillStyle = '#ffcc00';
-                    ctx.fillRect(canvas.width - 20 - progressWidth, 40, progressWidth * progressPercent, 10);
-                    
-                    // Visa tid kvar
-                    const secondsLeft = Math.ceil(challengeTimer / 60);
-                    ctx.fillText(`Tid kvar: ${secondsLeft}s`, canvas.width - 20, 70);
-                } else if (challengeCompleted && challengeMessageTimer > 0) {
-                    // Visa meddelande om klarad utmaning
-                    ctx.fillStyle = '#00ff00';
-                    ctx.fillText(`Utmaning klarad! +${activeChallenge ? activeChallenge.reward : 200} poäng`, canvas.width - 20, 30);
-                }
-                
-                // Återställ textjustering
-                ctx.textAlign = 'left';
-            }
-            
-            // Visa statistik
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'left';
-            ctx.font = '16px Arial';
-            ctx.fillText(`Poäng: ${gameState.score}`, 10, 30);
-            ctx.fillText(`Liv: ${gameState.lives}`, 10, 60);
-            ctx.fillText(`Nivå: ${gameState.level}`, 10, 90);
-            
-            // Visa aktiva power-ups
-            let powerUpY = 120;
-            if (player.powerUps.doubleFire) {
-                ctx.fillText("Dubbel eld aktiv", 10, powerUpY);
-                powerUpY += 25;
-            }
-            if (player.powerUps.fastFire) {
-                ctx.fillText("Snabb eld aktiv", 10, powerUpY);
-                powerUpY += 25;
-            }
-            if (player.powerUps.shield) {
-                ctx.fillText("Sköld aktiv", 10, powerUpY);
-                powerUpY += 25;
-            }
-            if (player.powerUps.autoTurret) {
-                ctx.fillText("Auto-turrets aktiva", 10, powerUpY);
-                powerUpY += 25;
-            }
-            if (player.powerUps.piercingShots) {
-                ctx.fillText("Genomträngande skott aktiva", 10, powerUpY);
-            }
-        } else {
-            // Rita game over-skärmen
-            drawGameOver();
-            
-            // Kontrollera om spelaren klickar för att starta om
-            if (keys[' '] || keys['Space']) {
-                // Innan spelet startas om, skicka poäng till parent om det finns
-                if (window.parent && window.parent !== window) {
-                    try {
-                        // För att undvika säkerhetsfel, använd postMessage istället för direkt funktionsanrop
+                    // Om parent window finns, meddela att spelet är klart
+                    if (window.parent && window.parent !== window) {
                         window.parent.postMessage({
-                            type: 'gameOver',
-                            score: gameState.score
+                            type: 'gameComplete',
+                            score: score
                         }, '*');
-                    } catch (e) {
-                        console.error('Kunde inte meddela parent om game over:', e);
                     }
-                }
-                
-                // Återställ spelet
+                    
+                    // Starta om spelet
+                    if (typeof resetGame === 'function') {
+                        resetGame();
+                    }
+                }).catch(error => {
+                    console.error('Error saving score:', error);
+                    alert('Det uppstod ett fel när poängen skulle sparas.');
+                });
+            }
+        });
+        
+        // Hoppa över-knapp
+        document.getElementById('skip-btn').addEventListener('click', function() {
+            document.getElementById('highscore-form').classList.add('hidden');
+            if (typeof resetGame === 'function') {
                 resetGame();
             }
-        }
+        });
         
-        // Anropa checkAchievements-funktionen i gameLoop, efter updateCombo
-        checkAchievements();
-        updateChallenge();
-        
-        // Fortsätt loopen
-        requestAnimationFrame(gameLoop);
-    }
-    
-    // Återställ startGame-funktionen
-    function startGame() {
-        createStars();
-        requestAnimationFrame(gameLoop);
-    }
-
-    // Kalla på startGame istället för att anropa gameLoop direkt
-    startGame();
+        // Lyssna på meddelanden från parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'startGame') {
+                if (typeof startGame === 'function') {
+                    startGame();
+                }
+            }
+        });
     </script>
-    <!-- Leta efter något som liknar detta -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/env.js"></script>
-    <script src="js/supabase-config.js"></script>
 </body>
 </html>
