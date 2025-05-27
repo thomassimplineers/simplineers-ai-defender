@@ -338,16 +338,17 @@ class NeuralNetworkBoss extends Boss {
             // Damage satellites first in phase 1
             let satellite = activeSatellites[Math.floor(Math.random() * activeSatellites.length)];
             satellite.health -= amount;
-            return;
+            return false;
         }
         
         // Phase 2 prediction shield
         if (this.phase === 2 && frameCount % 3 === 0) {
             // Block every third hit
-            return;
+            return false;
         }
         
         this.health -= amount;
+        return this.health <= 0;
     }
     
     display() {
