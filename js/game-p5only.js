@@ -81,7 +81,7 @@ function draw() {
     }
 }
 
-// Spelarklass
+// Uppdaterad Player-klass med coolt rymdskepp
 class Player {
     constructor(x, y) {
         this.pos = createVector(x, y);
@@ -91,6 +91,11 @@ class Player {
         this.shield = 0;
         this.invincible = false;
         this.invincibleTimer = 0;
+        
+        // Animation och effekter
+        this.engineGlow = 0;
+        this.wingAnimation = 0;
+        this.cockpitPulse = 0;
     }
     
     update() {
@@ -101,52 +106,263 @@ class Player {
                 this.invincible = false;
             }
         }
+        
+        // Uppdatera animationer
+        this.engineGlow = sin(frameCount * 0.2) * 0.5 + 0.5;
+        this.wingAnimation = sin(frameCount * 0.1) * 2;
+        this.cockpitPulse = sin(frameCount * 0.15) * 0.3 + 0.7;
     }
     
     display() {
         push();
+        
+        // Motor-effekter (ritas först så de hamnar bakom)
+        this.drawEngineEffects();
+        
+        // Huvudkropp
         if (this.invincible && frameCount % 10 < 5) {
-            fill(100, 100, 100, 150);
+            // Blinka vid oövervinnlighet
+            fill(150, 150, 150, 150);
+            stroke(200, 200, 200);
         } else {
-            fill(50, 150, 255);
+            // Gradient-liknande effekt för kroppen
+            fill(80, 120, 180);
+            stroke(150, 200, 255);
         }
-        stroke(255);
         strokeWeight(2);
         
-        // Rita skepp
+        // Rita avancerat skepp
+        push();
+        translate(this.pos.x, this.pos.y);
+        
+        // Huvudkropp (strömlinjeformad)
         beginShape();
-        vertex(this.pos.x, this.pos.y - this.size);
-        vertex(this.pos.x - this.size, this.pos.y + this.size);
-        vertex(this.pos.x, this.pos.y + this.size/2);
-        vertex(this.pos.x + this.size, this.pos.y + this.size);
+        vertex(0, -this.size * 1.2); // Spets
+        bezierVertex(-this.size * 0.3, -this.size * 0.8, 
+                     -this.size * 0.5, -this.size * 0.3,
+                     -this.size * 0.7, this.size * 0.5); // Vänster sida
+        vertex(-this.size * 0.4, this.size * 0.8); // Vänster bakkant
+        vertex(0, this.size * 0.6); // Mitt bak
+        vertex(this.size * 0.4, this.size * 0.8); // Höger bakkant
+        bezierVertex(this.size * 0.7, this.size * 0.5,
+                     this.size * 0.5, -this.size * 0.3,
+                     this.size * 0.3, -this.size * 0.8); // Höger sida
         endShape(CLOSE);
         
-        // Rita sköld
+        // Vingar med animation
+        push();
+        fill(60, 100, 160);
+        stroke(100, 150, 200);
+        
+        // Vänster vinge
+        push();
+        translate(-this.size * 0.8, 0);
+        rotate(radians(-20 + this.wingAnimation));
+        beginShape();
+        vertex(0, -this.size * 0.3);
+        vertex(-this.size * 0.8, this.size * 0.2);
+        vertex(-this.size * 0.6, this.size * 0.6);
+        vertex(0, this.size * 0.3);
+        endShape(CLOSE);
+        
+        // Vinge-detaljer
+        stroke(255, 255, 255, 100);
+        line(-this.size * 0.2, 0, -this.size * 0.6, this.size * 0.2);
+        pop();
+        
+        // Höger vinge
+        push();
+        translate(this.size * 0.8, 0);
+        rotate(radians(20 - this.wingAnimation));
+        beginShape();
+        vertex(0, -this.size * 0.3);
+        vertex(this.size * 0.8, this.size * 0.2);
+        vertex(this.size * 0.6, this.size * 0.6);
+        vertex(0, this.size * 0.3);
+        endShape(CLOSE);
+        
+        // Vinge-detaljer
+        stroke(255, 255, 255, 100);
+        line(this.size * 0.2, 0, this.size * 0.6, this.size * 0.2);
+        pop();
+        pop();
+        
+        // Cockpit
+        push();
+        fill(50, 200, 255, 200 * this.cockpitPulse);
+        stroke(100, 220, 255);
+        strokeWeight(1);
+        ellipse(0, -this.size * 0.5, this.size * 0.6, this.size * 0.8);
+        
+        // Cockpit-reflektion
+        noStroke();
+        fill(255, 255, 255, 50);
+        ellipse(-this.size * 0.1, -this.size * 0.6, this.size * 0.2, this.size * 0.3);
+        pop();
+        
+        // Motorer
+        push();
+        fill(255, 100 + this.engineGlow * 50, 50);
+        stroke(255, 150, 100);
+        
+        // Vänster motor
+        ellipse(-this.size * 0.3, this.size * 0.7, this.size * 0.3, this.size * 0.4);
+        // Höger motor
+        ellipse(this.size * 0.3, this.size * 0.7, this.size * 0.3, this.size * 0.4);
+        // Mittmotor
+        ellipse(0, this.size * 0.7, this.size * 0.4, this.size * 0.5);
+        pop();
+        
+        // Vapen-portar baserat på vapennivå
+        this.drawWeaponPorts();
+        
+        pop(); // translate
+        
+        // Rita sköld om aktiv
         if (this.shield > 0) {
-            noFill();
-            stroke(100, 100, 255, 150);
-            strokeWeight(2);
-            ellipse(this.pos.x, this.pos.y, this.size * 3);
+            this.drawShield();
+        }
+        
+        pop();
+    }
+    
+    drawEngineEffects() {
+        push();
+        noStroke();
+        
+        // Huvudmotorflamma
+        for (let i = 5; i > 0; i--) {
+            let alpha = map(i, 0, 5, 100, 0);
+            let size = map(i, 0, 5, 1.5, 0.5);
+            let yOffset = map(i, 0, 5, 30, 10);
+            
+            fill(255, 150, 50, alpha * this.engineGlow);
+            ellipse(this.pos.x, this.pos.y + this.size + yOffset, 
+                    this.size * size, this.size * size * 1.5);
+        }
+        
+        // Sidomotorer
+        for (let i = 3; i > 0; i--) {
+            let alpha = map(i, 0, 3, 80, 0);
+            let size = map(i, 0, 3, 1, 0.3);
+            let yOffset = map(i, 0, 3, 20, 8);
+            
+            fill(255, 100, 30, alpha * this.engineGlow);
+            // Vänster
+            ellipse(this.pos.x - this.size * 0.3, this.pos.y + this.size * 0.7 + yOffset, 
+                    this.size * size * 0.5, this.size * size);
+            // Höger
+            ellipse(this.pos.x + this.size * 0.3, this.pos.y + this.size * 0.7 + yOffset, 
+                    this.size * size * 0.5, this.size * size);
+        }
+        
+        // Partiklar
+        if (frameCount % 2 === 0) {
+            stroke(255, 200, 100, 150);
+            strokeWeight(random(1, 3));
+            for (let i = 0; i < 3; i++) {
+                let x = this.pos.x + random(-this.size * 0.5, this.size * 0.5);
+                let y = this.pos.y + this.size + random(10, 20);
+                point(x, y);
+            }
+        }
+        
+        pop();
+    }
+    
+    drawWeaponPorts() {
+        push();
+        fill(255, 200, 100);
+        stroke(255, 255, 200);
+        strokeWeight(1);
+        
+        switch(this.weaponLevel) {
+            case 1:
+                // En vapenport
+                ellipse(0, -this.size * 0.9, this.size * 0.15, this.size * 0.2);
+                break;
+            case 2:
+                // Två vapenportar
+                ellipse(-this.size * 0.3, -this.size * 0.7, this.size * 0.12, this.size * 0.15);
+                ellipse(this.size * 0.3, -this.size * 0.7, this.size * 0.12, this.size * 0.15);
+                break;
+            case 3:
+                // Tre vapenportar
+                ellipse(0, -this.size * 0.9, this.size * 0.15, this.size * 0.2);
+                ellipse(-this.size * 0.4, -this.size * 0.5, this.size * 0.1, this.size * 0.12);
+                ellipse(this.size * 0.4, -this.size * 0.5, this.size * 0.1, this.size * 0.12);
+                break;
         }
         pop();
     }
     
+    drawShield() {
+        push();
+        noFill();
+        
+        // Flera lager för djupeffekt
+        for (let i = 0; i < this.shield; i++) {
+            let alpha = map(i, 0, this.shield, 150, 50);
+            stroke(100, 150, 255, alpha);
+            strokeWeight(2);
+            
+            // Hexagonal sköld
+            push();
+            translate(this.pos.x, this.pos.y);
+            rotate(frameCount * 0.02 * (i % 2 === 0 ? 1 : -1));
+            beginShape();
+            for (let j = 0; j < 6; j++) {
+                let angle = TWO_PI / 6 * j;
+                let r = this.size * 2 + i * 5 + sin(frameCount * 0.1 + i) * 3;
+                let x = cos(angle) * r;
+                let y = sin(angle) * r;
+                vertex(x, y);
+            }
+            endShape(CLOSE);
+            pop();
+        }
+        
+        // Energi-pulser
+        if (frameCount % 30 === 0) {
+            stroke(200, 220, 255, 100);
+            strokeWeight(3);
+            ellipse(this.pos.x, this.pos.y, this.size * 4, this.size * 4);
+        }
+        
+        pop();
+    }
+    
     shoot() {
-        // Olika vapen beroende på nivå
+        // Olika vapen med coola effekter
         switch(this.weaponLevel) {
             case 1:
-                bullets.push(new Bullet(this.pos.x, this.pos.y - 20, 0, -10));
+                bullets.push(new Bullet(this.pos.x, this.pos.y - this.size, 0, -12));
                 break;
             case 2:
-                bullets.push(new Bullet(this.pos.x - 10, this.pos.y - 15, 0, -10));
-                bullets.push(new Bullet(this.pos.x + 10, this.pos.y - 15, 0, -10));
+                bullets.push(new Bullet(this.pos.x - this.size * 0.3, this.pos.y - this.size * 0.7, -1, -11));
+                bullets.push(new Bullet(this.pos.x + this.size * 0.3, this.pos.y - this.size * 0.7, 1, -11));
                 break;
             case 3:
-                bullets.push(new Bullet(this.pos.x, this.pos.y - 20, 0, -10));
-                bullets.push(new Bullet(this.pos.x - 15, this.pos.y - 15, -2, -8));
-                bullets.push(new Bullet(this.pos.x + 15, this.pos.y - 15, 2, -8));
+                // Mittskott
+                bullets.push(new Bullet(this.pos.x, this.pos.y - this.size, 0, -12));
+                // Sidoskott
+                bullets.push(new Bullet(this.pos.x - this.size * 0.4, this.pos.y - this.size * 0.5, -2, -10));
+                bullets.push(new Bullet(this.pos.x + this.size * 0.4, this.pos.y - this.size * 0.5, 2, -10));
                 break;
         }
+        
+        // Mynningsflamma-effekt
+        this.createMuzzleFlash();
+    }
+    
+    createMuzzleFlash() {
+        // Skapa en kort ljuseffekt vid skjutning
+        push();
+        fill(255, 255, 200, 150);
+        noStroke();
+        let flashSize = this.size * 0.5;
+        ellipse(this.pos.x, this.pos.y - this.size, flashSize, flashSize);
+        pop();
     }
     
     takeDamage() {
