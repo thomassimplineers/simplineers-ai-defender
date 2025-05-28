@@ -110,34 +110,7 @@
         </div>
     </div>
     
-    <!-- Enbart p5.js spellogik -->
+    <!-- Komplett spellogik i samma fil för att undvika laddningsproblem -->
     <script src="js/game-p5only.js"></script>
-    
-    <script>
-        // Hantera highscore-formulär
-        document.getElementById('score-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const company = document.getElementById('company').value;
-            const score = document.getElementById('score-input').value;
-            
-            console.log('Highscore:', { name, email, company, score });
-            
-            document.getElementById('highscore-form').classList.add('hidden');
-            
-            if (typeof resetGame === 'function') {
-                resetGame();
-            }
-        });
-        
-        document.getElementById('skip-btn').addEventListener('click', function() {
-            document.getElementById('highscore-form').classList.add('hidden');
-            if (typeof resetGame === 'function') {
-                resetGame();
-            }
-        });
-    </script>
 </body>
 </html>
