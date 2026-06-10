@@ -30,8 +30,8 @@
             briefing: 'Generativ AI blir vardag. Rensa brus och bevara kvalitativa instruktioner.',
             enemyTypes: ['token', 'hallucination'],
             color: '#68e8ff',
-            target: 10,
-            spawnRate: 1.05,
+            target: 9,
+            spawnRate: 0.72,
             boss: false
         },
         {
@@ -41,8 +41,8 @@
             briefing: 'RAG och företagsdata kräver källspårning. Fel källa kan bli fel beslut.',
             enemyTypes: ['retrieval', 'leak'],
             color: '#7dff9b',
-            target: 13,
-            spawnRate: 0.92,
+            target: 11,
+            spawnRate: 0.64,
             boss: false
         },
         {
@@ -52,8 +52,8 @@
             briefing: 'Modeller växlar mellan text, bild, ljud och tabeller. Du behöver flera försvarslägen.',
             enemyTypes: ['vision', 'audio', 'table'],
             color: '#b98cff',
-            target: 16,
-            spawnRate: 0.82,
+            target: 13,
+            spawnRate: 0.56,
             boss: false
         },
         {
@@ -63,8 +63,8 @@
             briefing: 'Resonemangsmodeller laddar längre kedjor innan kraftfulla beslut. Avbryt riskabla tankekedjor.',
             enemyTypes: ['reasoner', 'hallucination'],
             color: '#ffb14a',
-            target: 18,
-            spawnRate: 0.78,
+            target: 15,
+            spawnRate: 0.50,
             boss: 'reasoning'
         },
         {
@@ -74,8 +74,8 @@
             briefing: 'Agentisk AI använder verktyg och delmål. Neutralisera tool-drones innan autonomin skenar.',
             enemyTypes: ['agent', 'tool', 'memory'],
             color: '#ff4f7b',
-            target: 20,
-            spawnRate: 0.72,
+            target: 17,
+            spawnRate: 0.46,
             boss: 'agent'
         },
         {
@@ -85,8 +85,8 @@
             briefing: 'Frontiermodeller är extremt starka i vissa uppgifter men ojämna i robusthet. Bygg en full governance-stack.',
             enemyTypes: ['agent', 'reasoner', 'vision', 'leak'],
             color: '#ffffff',
-            target: 24,
-            spawnRate: 0.66,
+            target: 20,
+            spawnRate: 0.42,
             boss: 'frontier'
         }
     ];
@@ -118,7 +118,7 @@
         x: W / 2,
         y: H - 86,
         r: 18,
-        speed: 255,
+        speed: 315,
         fireCooldown: 0,
         invuln: 0
     };
@@ -147,7 +147,7 @@
             this.r = boss ? 58 : 18 + Math.random() * 8;
             this.hp = boss ? 36 + state.levelIndex * 10 : spec.hp + Math.floor(state.levelIndex / 2);
             this.maxHp = this.hp;
-            this.speed = boss ? 28 : spec.speed + state.levelIndex * 5;
+            this.speed = boss ? 38 : (spec.speed + state.levelIndex * 7) * 1.24;
             this.score = boss ? 1600 + state.levelIndex * 500 : spec.score;
             this.color = spec.color;
             this.shape = spec.shape;
@@ -166,10 +166,10 @@
             const wave = Math.sin(this.t * 2.2) * (this.boss ? 38 : 28);
             if (this.type === 'agent' || this.boss) {
                 this.x += Math.sin(this.t * 1.7) * 52 * dt;
-                this.y += this.speed * 0.52 * dt;
+                this.y += this.speed * 0.68 * dt;
                 state.autonomy = Math.min(100, state.autonomy + dt * (this.boss ? 3.5 : 0.65));
             } else if (this.type === 'leak') {
-                this.y += this.speed * 1.25 * dt;
+                this.y += this.speed * 1.42 * dt;
                 this.x += Math.sin(this.t * 5) * 70 * dt;
             } else {
                 this.y += this.speed * dt;
@@ -179,7 +179,7 @@
 
             this.fireTimer -= dt;
             if (this.fireTimer <= 0) {
-                this.fireTimer = this.boss ? 0.8 + Math.random() * 0.8 : 1.8 + Math.random() * 2.8;
+                this.fireTimer = this.boss ? 0.62 + Math.random() * 0.58 : 1.15 + Math.random() * 1.85;
                 this.shoot(level);
             }
 
@@ -206,7 +206,7 @@
             const dx = player.x - this.x;
             const dy = player.y - this.y;
             const mag = Math.hypot(dx, dy) || 1;
-            const speed = this.boss ? 190 : 145;
+            const speed = this.boss ? 245 : 185;
             const count = this.boss ? 3 : 1;
             for (let i = 0; i < count; i++) {
                 const spread = (i - (count - 1) / 2) * 0.22;
@@ -711,7 +711,7 @@
             { type: 'human', label: 'HITL', color: '#ffb14a' }
         ];
         const p = choice(types);
-        pickups.push({ ...p, x: 40 + Math.random() * (W - 80), y: -20, r: 16, vy: 72 });
+        pickups.push({ ...p, x: 40 + Math.random() * (W - 80), y: -20, r: 16, vy: 104 });
     }
 
     function resetGame() {
@@ -750,8 +750,8 @@
         }
         state.levelIndex += 1;
         state.killsThisLevel = 0;
-        state.spawnTimer = 1.6;
-        state.pickupTimer = 2.2;
+        state.spawnTimer = 0.75;
+        state.pickupTimer = 1.6;
         state.bossSpawned = false;
         state.bossDefeated = false;
         state.safety = Math.min(100, state.safety + 18);
@@ -792,8 +792,8 @@
         state.pulseCooldown = Math.max(0, state.pulseCooldown - dt);
         player.fireCooldown = Math.max(0, player.fireCooldown - dt);
         player.invuln = Math.max(0, player.invuln - dt);
-        state.compute = Math.min(100, state.compute + dt * 2.2);
-        state.autonomy = Math.min(100, state.autonomy + dt * (0.85 + state.levelIndex * 0.18));
+        state.compute = Math.min(100, state.compute + dt * 3.0);
+        state.autonomy = Math.min(100, state.autonomy + dt * (1.05 + state.levelIndex * 0.24));
         state.safety -= Math.max(0, state.autonomy - 78) * dt * 0.025;
 
         movePlayer(dt);
@@ -802,11 +802,12 @@
         const level = timeline[state.levelIndex];
         if (state.spawnTimer <= 0) {
             spawnEnemy();
-            state.spawnTimer = Math.max(0.18, level.spawnRate - state.levelIndex * 0.035 + Math.random() * 0.45);
+            const tempoPressure = clamp(state.elapsed / 95, 0, 0.24);
+            state.spawnTimer = Math.max(0.12, level.spawnRate - state.levelIndex * 0.04 - tempoPressure + Math.random() * 0.24);
         }
         if (state.pickupTimer <= 0) {
             spawnPickup();
-            state.pickupTimer = 8 + Math.random() * 6;
+            state.pickupTimer = 5.6 + Math.random() * 3.8;
         }
 
         updateList(bullets, dt, (b) => { b.x += b.vx * dt; b.y += b.vy * dt; return b.y > -30 && b.y < H + 30 && b.x > -30 && b.x < W + 30; });
@@ -837,15 +838,15 @@
         const cost = 1.7 + state.weapon * 0.4;
         if (state.compute < cost) return;
         state.compute -= cost;
-        player.fireCooldown = Math.max(0.11, 0.28 - state.weapon * 0.035);
+        player.fireCooldown = Math.max(0.075, 0.205 - state.weapon * 0.032);
         const spreads = state.weapon >= 3 ? [-0.22, 0, 0.22] : state.weapon === 2 ? [-0.12, 0.12] : [0];
-        spreads.forEach((s) => bullets.push({ x: player.x, y: player.y - 18, vx: Math.sin(s) * 210, vy: -430, r: 4, color: '#7dff9b' }));
-        burst(player.x, player.y - 20, '#7dff9b', 3, 70);
+        spreads.forEach((s) => bullets.push({ x: player.x, y: player.y - 18, vx: Math.sin(s) * 285, vy: -610, r: 4, color: '#7dff9b' }));
+        burst(player.x, player.y - 20, '#7dff9b', 5, 125);
     }
 
     function governancePulse() {
         if (state.pulseCooldown > 0 || state.compute < 18) return;
-        state.pulseCooldown = 5.5;
+        state.pulseCooldown = 4.25;
         state.compute -= 18;
         state.autonomy = Math.max(0, state.autonomy - 18);
         state.evalCoverage = Math.min(100, state.evalCoverage + 7);
