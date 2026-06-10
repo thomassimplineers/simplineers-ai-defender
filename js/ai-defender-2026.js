@@ -223,72 +223,405 @@
         }
 
         draw() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            const pulse = 1 + Math.sin(this.t * 5) * 0.05;
-            ctx.scale(pulse, pulse);
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = this.boss ? 24 : 14;
-            ctx.lineWidth = this.boss ? 3 : 2;
-            ctx.strokeStyle = this.color;
-            ctx.fillStyle = hexToRgba(this.color, 0.16);
-            drawShape(this.shape, this.r, this.boss);
-
-            if (this.type === 'reasoner' || this.boss) {
-                drawReasoningChains(this.r + 9, this.t, this.color);
-            }
-            if (this.type === 'agent' || this.boss) {
-                drawAgentNodes(this.r + 8, this.t);
-            }
-
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#ffffff';
-            ctx.font = this.boss ? '700 13px Inter' : '700 9px Inter';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.boss ? timeline[state.levelIndex].title.toUpperCase() : this.label, 0, this.boss ? 5 : 3);
-
-            const barW = this.boss ? 105 : 36;
-            ctx.fillStyle = 'rgba(255,255,255,0.18)';
-            ctx.fillRect(-barW / 2, this.r + 10, barW, 5);
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-barW / 2, this.r + 10, barW * Math.max(0, this.hp / this.maxHp), 5);
-            ctx.restore();
+            drawAIMonster(this);
         }
     }
 
-    function drawShape(shape, r, boss) {
-        if (shape === 'diamond') {
-            path([0, -r, r, 0, 0, r, -r, 0]);
-        } else if (shape === 'box') {
-            ctx.strokeRect(-r, -r, r * 2, r * 2);
-            ctx.fillRect(-r, -r, r * 2, r * 2);
-            ctx.beginPath();
-            ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.stroke();
-        } else if (shape === 'eye') {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, r * 1.15, r * 0.66, 0, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
-            ctx.beginPath(); ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2); ctx.stroke();
-        } else if (shape === 'wave') {
-            ctx.beginPath();
-            for (let i = -r; i <= r; i += 3) ctx.lineTo(i, Math.sin(i * 0.25) * r * 0.4);
-            ctx.stroke();
-            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
-        } else if (shape === 'grid') {
-            ctx.strokeRect(-r, -r, r * 2, r * 2);
-            for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * r / 2, -r); ctx.lineTo(i * r / 2, r); ctx.moveTo(-r, i * r / 2); ctx.lineTo(r, i * r / 2); ctx.stroke(); }
-            ctx.fillRect(-r, -r, r * 2, r * 2);
-        } else if (shape === 'chain') {
-            for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.arc(i * r * 0.55, 0, r * 0.45, 0, Math.PI * 2); ctx.stroke(); }
-            ctx.fillRect(-r, -r * 0.55, r * 2, r * 1.1);
-        } else if (shape === 'node' || shape === 'tool' || shape === 'memory') {
-            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.3, Math.sin(a) * r * 0.3); ctx.lineTo(Math.cos(a) * r * 1.18, Math.sin(a) * r * 1.18); ctx.stroke(); }
-        } else if (shape === 'drop') {
-            ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r, -r * 0.1, 0, r); ctx.quadraticCurveTo(-r, -r * 0.1, 0, -r); ctx.fill(); ctx.stroke();
-        } else {
-            ctx.strokeRect(-r, -r, r * 2, r * 2); ctx.fillRect(-r, -r, r * 2, r * 2);
+    function drawAIMonster(enemy) {
+        const r = enemy.r;
+        const t = enemy.t;
+        const color = enemy.color;
+        const bossScale = enemy.boss ? 1.32 : 1.16;
+        const pulse = 1 + Math.sin(t * 5) * (enemy.boss ? 0.035 : 0.055);
+
+        ctx.save();
+        ctx.translate(enemy.x, enemy.y);
+        ctx.scale(pulse * bossScale, pulse * bossScale);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = enemy.boss ? 28 : 16;
+        drawMonsterAura(r, color, t, enemy.boss);
+        ctx.lineWidth = enemy.boss ? 2.6 : 1.8;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = hexToRgba(color, 0.18);
+
+        switch (enemy.type) {
+            case 'token': drawTokenImp(r, t, color); break;
+            case 'hallucination': drawGlitchWraith(r, t, color); break;
+            case 'retrieval': drawArchiveBeetle(r, t, color); break;
+            case 'leak': drawDataLeech(r, t, color); break;
+            case 'vision': drawVisionBasilisk(r, t, color); break;
+            case 'audio': drawSonarBat(r, t, color); break;
+            case 'table': drawGridGolem(r, t, color); break;
+            case 'reasoner': drawReasoningHydra(r, t, color, enemy.boss); break;
+            case 'agent': drawAgentSpider(r, t, color, enemy.boss); break;
+            case 'tool': drawToolGremlin(r, t, color); break;
+            case 'memory': drawMemoryWorm(r, t, color); break;
+            default: drawTokenImp(r, t, color); break;
         }
+
+        if (enemy.boss) {
+            drawBossCrown(r, t, color);
+        }
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = enemy.boss ? '800 10px Inter' : '800 6.5px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const tag = enemy.boss ? 'BOSS' : enemy.label;
+        drawLabelPlate(tag, r, color);
+        drawHealthBar(enemy, r, color);
+        ctx.restore();
+    }
+
+    function drawMonsterAura(r, color, t, boss) {
+        ctx.save();
+        ctx.globalAlpha = boss ? 0.28 : 0.18;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = boss ? 2 : 1;
+        for (let i = 0; i < (boss ? 3 : 2); i++) {
+            const rr = r * (1.35 + i * 0.34 + Math.sin(t * 2 + i) * 0.04);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rr * 1.18, rr * 0.82, t * 0.08 + i, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawLabelPlate(text, r, color) {
+        const w = Math.max(30, text.length * 5.7 + 10);
+        const y = -r * 1.1;
+        ctx.save();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(4, 10, 22, 0.72)';
+        ctx.strokeStyle = hexToRgba(color, 0.75);
+        roundRect(-w / 2, y - 7, w, 14, 5, true, true);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(text, 0, y);
+        ctx.restore();
+    }
+
+    function drawHealthBar(enemy, r, color) {
+        const barW = enemy.boss ? 104 : 34;
+        const y = r + (enemy.boss ? 18 : 12);
+        ctx.save();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        roundRect(-barW / 2, y, barW, 5, 2, true, false);
+        ctx.fillStyle = color;
+        roundRect(-barW / 2, y, barW * Math.max(0, enemy.hp / enemy.maxHp), 5, 2, true, false);
+        ctx.restore();
+    }
+
+    function drawBodyBlob(r, color, wobble = 0, aspectX = 1, aspectY = 1) {
+        const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.28, r * 0.15, 0, 0, r * 1.15);
+        grad.addColorStop(0, hexToRgba('#ffffff', 0.48));
+        grad.addColorStop(0.22, hexToRgba(color, 0.55));
+        grad.addColorStop(1, hexToRgba(color, 0.12));
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        for (let i = 0; i < 18; i++) {
+            const a = (Math.PI * 2 * i) / 18;
+            const k = 1 + Math.sin(a * 3 + wobble) * 0.08 + Math.cos(a * 5 - wobble) * 0.045;
+            const x = Math.cos(a) * r * aspectX * k;
+            const y = Math.sin(a) * r * aspectY * k;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    function drawEye(x, y, size, color, t, angry = false) {
+        ctx.save();
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 7;
+        ctx.fillStyle = '#f7fbff';
+        ctx.beginPath();
+        ctx.ellipse(x, y, size * 0.74, size, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x + Math.sin(t * 2.8) * size * 0.12, y + Math.cos(t * 2.1) * size * 0.08, size * 0.34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(2,8,18,0.8)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.82, 0, Math.PI * 2);
+        ctx.stroke();
+        if (angry) {
+            ctx.strokeStyle = '#07111f';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(x - size * 0.8, y - size * 0.75);
+            ctx.lineTo(x + size * 0.8, y - size * 0.3);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawClaw(x, y, len, angle, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.strokeStyle = color;
+        ctx.fillStyle = hexToRgba(color, 0.22);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(len * 0.35, -len * 0.22, len, 0);
+        ctx.quadraticCurveTo(len * 0.36, len * 0.16, 0, 0);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawHorn(x, y, len, angle, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = hexToRgba('#ffffff', 0.34);
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(len * 0.24, -len * 0.22, len * 0.2, -len);
+        ctx.quadraticCurveTo(-len * 0.18, -len * 0.48, 0, 0);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawTokenImp(r, t, color) {
+        const wing = Math.sin(t * 7) * r * 0.08;
+        ctx.save();
+        ctx.fillStyle = hexToRgba(color, 0.13);
+        path([-r * 1.45, -r * 0.18 + wing, -r * 0.55, -r * 0.62, -r * 0.36, r * 0.15]);
+        path([r * 1.45, -r * 0.18 - wing, r * 0.55, -r * 0.62, r * 0.36, r * 0.15]);
+        drawHorn(-r * 0.32, -r * 0.82, r * 0.55, -0.35, color);
+        drawHorn(r * 0.32, -r * 0.82, r * 0.55, 0.35, color);
+        drawBodyBlob(r * 0.78, color, t, 0.78, 1.08);
+        drawEye(-r * 0.24, -r * 0.1, r * 0.16, color, t, true);
+        drawEye(r * 0.24, -r * 0.1, r * 0.16, color, t, true);
+        drawClaw(-r * 0.65, r * 0.62, r * 0.46, 2.1, color);
+        drawClaw(r * 0.65, r * 0.62, r * 0.46, 1.05, color);
+        ctx.restore();
+    }
+
+    function drawGlitchWraith(r, t, color) {
+        ctx.save();
+        for (let i = 0; i < 3; i++) {
+            ctx.globalAlpha = i === 0 ? 1 : 0.24;
+            ctx.translate((Math.random() - 0.5) * 0.6, 0);
+            ctx.strokeStyle = i === 1 ? '#68e8ff' : color;
+            ctx.fillStyle = hexToRgba(i === 2 ? '#ffd166' : color, 0.13);
+            ctx.beginPath();
+            ctx.moveTo(0, -r * 1.05);
+            ctx.bezierCurveTo(r * 0.9, -r * 0.5, r * 0.7, r * 0.5, r * 0.22, r * 0.95);
+            ctx.lineTo(r * 0.05, r * 0.52 + Math.sin(t * 9) * 3);
+            ctx.lineTo(-r * 0.18, r * 1.05);
+            ctx.lineTo(-r * 0.28, r * 0.5);
+            ctx.bezierCurveTo(-r * 0.8, r * 0.32, -r * 0.78, -r * 0.52, 0, -r * 1.05);
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        drawEye(-r * 0.24, -r * 0.25, r * 0.17, color, t, true);
+        drawEye(r * 0.24, -r * 0.22, r * 0.15, color, t + 1, true);
+        drawEye(0, r * 0.06, r * 0.12, '#ffd166', t + 2, true);
+        ctx.strokeStyle = hexToRgba('#ffffff', 0.5);
+        for (let y = -r * 0.7; y < r * 0.75; y += r * 0.38) {
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.65, y + Math.sin(t * 10 + y) * 2);
+            ctx.lineTo(r * 0.65, y + Math.cos(t * 8 + y) * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawArchiveBeetle(r, t, color) {
+        ctx.save();
+        for (let side of [-1, 1]) {
+            for (let i = 0; i < 3; i++) {
+                const y = -r * 0.45 + i * r * 0.43;
+                drawClaw(side * r * 0.66, y, r * 0.55, side < 0 ? 2.85 : 0.3, color);
+            }
+        }
+        drawBodyBlob(r * 0.86, color, t, 1.05, 0.82);
+        ctx.strokeStyle = hexToRgba('#ffffff', 0.55);
+        for (let y = -r * 0.43; y <= r * 0.43; y += r * 0.29) {
+            ctx.beginPath(); ctx.moveTo(-r * 0.58, y); ctx.lineTo(r * 0.58, y); ctx.stroke();
+        }
+        ctx.beginPath(); ctx.moveTo(0, -r * 0.72); ctx.lineTo(0, r * 0.74); ctx.stroke();
+        drawEye(-r * 0.23, -r * 0.62, r * 0.12, color, t, false);
+        drawEye(r * 0.23, -r * 0.62, r * 0.12, color, t, false);
+        ctx.restore();
+    }
+
+    function drawDataLeech(r, t, color) {
+        ctx.save();
+        ctx.rotate(Math.sin(t * 3) * 0.1);
+        drawBodyBlob(r * 0.88, color, t, 0.72, 1.25);
+        ctx.fillStyle = 'rgba(3,8,18,0.85)';
+        ctx.beginPath();
+        ctx.ellipse(0, r * 0.32, r * 0.42, r * 0.25, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        for (let i = 0; i < 6; i++) {
+            const a = Math.PI * 0.15 + i * Math.PI * 0.14;
+            drawClaw(Math.cos(a) * r * 0.32, r * 0.26 + Math.sin(a) * r * 0.18, r * 0.2, a - Math.PI / 2, '#ffffff');
+        }
+        drawEye(-r * 0.2, -r * 0.28, r * 0.13, color, t, true);
+        drawEye(r * 0.2, -r * 0.28, r * 0.13, color, t, true);
+        ctx.restore();
+    }
+
+    function drawVisionBasilisk(r, t, color) {
+        ctx.save();
+        for (let side of [-1, 1]) {
+            ctx.fillStyle = hexToRgba(color, 0.11);
+            path([side * r * 0.55, -r * 0.2, side * r * 1.35, -r * 0.55, side * r * 0.85, r * 0.2]);
+        }
+        drawBodyBlob(r * 0.86, color, t, 1.08, 0.74);
+        drawEye(0, -r * 0.02, r * 0.43, color, t, true);
+        ctx.strokeStyle = hexToRgba(color, 0.35 + Math.sin(t * 5) * 0.15);
+        ctx.beginPath();
+        ctx.moveTo(0, r * 0.08); ctx.lineTo(0, r * 1.14); ctx.stroke();
+        for (let i = -1; i <= 1; i++) drawHorn(i * r * 0.28, -r * 0.72, r * 0.38, i * 0.2, color);
+        ctx.restore();
+    }
+
+    function drawSonarBat(r, t, color) {
+        ctx.save();
+        const flap = Math.sin(t * 8) * r * 0.18;
+        ctx.fillStyle = hexToRgba(color, 0.13);
+        path([-r * 1.55, -flap, -r * 0.28, -r * 0.5, -r * 0.42, r * 0.52]);
+        path([r * 1.55, flap, r * 0.28, -r * 0.5, r * 0.42, r * 0.52]);
+        drawBodyBlob(r * 0.62, color, t, 0.72, 0.95);
+        drawEye(-r * 0.17, -r * 0.18, r * 0.11, color, t, true);
+        drawEye(r * 0.17, -r * 0.18, r * 0.11, color, t, true);
+        ctx.strokeStyle = hexToRgba(color, 0.45);
+        for (let i = 1; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.arc(0, r * 0.18, r * (0.35 + i * 0.22), -Math.PI * 0.15, Math.PI * 1.15);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawGridGolem(r, t, color) {
+        ctx.save();
+        ctx.rotate(Math.sin(t * 2) * 0.05);
+        ctx.fillStyle = hexToRgba(color, 0.12);
+        ctx.strokeStyle = color;
+        roundRect(-r * 0.8, -r * 0.82, r * 1.6, r * 1.6, r * 0.12, true, true);
+        ctx.strokeStyle = hexToRgba('#ffffff', 0.48);
+        for (let i = -1; i <= 1; i++) {
+            ctx.beginPath(); ctx.moveTo(i * r * 0.27, -r * 0.78); ctx.lineTo(i * r * 0.27, r * 0.78); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-r * 0.78, i * r * 0.27); ctx.lineTo(r * 0.78, i * r * 0.27); ctx.stroke();
+        }
+        drawClaw(-r * 0.92, r * 0.12, r * 0.48, 2.75, color);
+        drawClaw(r * 0.92, r * 0.12, r * 0.48, 0.35, color);
+        drawEye(-r * 0.26, -r * 0.22, r * 0.13, color, t, false);
+        drawEye(r * 0.26, -r * 0.22, r * 0.13, color, t, false);
+        ctx.restore();
+    }
+
+    function drawReasoningHydra(r, t, color, boss) {
+        ctx.save();
+        const heads = boss ? 5 : 3;
+        for (let i = 0; i < heads; i++) {
+            const a = -Math.PI * 0.9 + i * (Math.PI * 1.8 / (heads - 1 || 1));
+            const hx = Math.cos(a) * r * 0.68;
+            const hy = -r * 0.3 + Math.sin(a) * r * 0.28;
+            ctx.strokeStyle = hexToRgba(color, 0.62);
+            ctx.beginPath(); ctx.moveTo(0, -r * 0.1); ctx.quadraticCurveTo(hx * 0.45, hy + r * 0.2, hx, hy); ctx.stroke();
+            drawBodyBlob(r * 0.23, color, t + i, 1, 0.86);
+            drawEye(hx, hy, r * 0.09, color, t + i, true);
+        }
+        drawBodyBlob(r * 0.78, color, t, 0.92, 0.9);
+        drawReasoningChains(r + 7, t, color);
+        ctx.restore();
+    }
+
+    function drawAgentSpider(r, t, color, boss) {
+        ctx.save();
+        for (let side of [-1, 1]) {
+            for (let i = 0; i < 4; i++) {
+                const y = -r * 0.5 + i * r * 0.34;
+                const bend = Math.sin(t * 4 + i) * r * 0.12;
+                ctx.strokeStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(side * r * 0.42, y);
+                ctx.lineTo(side * (r * 0.95 + bend), y + r * 0.18);
+                ctx.lineTo(side * (r * 1.28 + bend), y + r * 0.02);
+                ctx.stroke();
+                drawClaw(side * (r * 1.25 + bend), y + r * 0.02, r * 0.24, side < 0 ? Math.PI : 0, color);
+            }
+        }
+        drawBodyBlob(r * 0.76, color, t, 0.95, 1.02);
+        drawEye(-r * 0.22, -r * 0.18, r * 0.15, color, t, true);
+        drawEye(r * 0.22, -r * 0.18, r * 0.15, color, t, true);
+        drawAgentNodes(r + (boss ? 14 : 8), t);
+        ctx.restore();
+    }
+
+    function drawToolGremlin(r, t, color) {
+        ctx.save();
+        drawHorn(-r * 0.34, -r * 0.73, r * 0.42, -0.25, color);
+        drawHorn(r * 0.34, -r * 0.73, r * 0.42, 0.25, color);
+        drawBodyBlob(r * 0.72, color, t, 0.9, 0.92);
+        drawEye(-r * 0.2, -r * 0.16, r * 0.12, color, t, true);
+        drawEye(r * 0.2, -r * 0.16, r * 0.12, color, t, true);
+        ctx.strokeStyle = color;
+        for (let side of [-1, 1]) {
+            ctx.beginPath();
+            ctx.moveTo(side * r * 0.48, r * 0.05);
+            ctx.lineTo(side * r * 1.05, -r * 0.2 + Math.sin(t * 6) * 2);
+            ctx.stroke();
+            drawClaw(side * r * 1.05, -r * 0.2, r * 0.38, side < 0 ? Math.PI * 1.12 : -0.12, color);
+        }
+        ctx.fillStyle = 'rgba(3,8,18,0.7)';
+        ctx.beginPath(); ctx.arc(0, r * 0.32, r * 0.22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawMemoryWorm(r, t, color) {
+        ctx.save();
+        for (let i = 3; i >= 0; i--) {
+            const x = (i - 1.5) * -r * 0.34;
+            const y = Math.sin(t * 3 + i) * r * 0.08;
+            ctx.save();
+            ctx.translate(x, y);
+            drawBodyBlob(r * (0.45 - i * 0.025), color, t + i, 0.9, 0.75);
+            ctx.restore();
+        }
+        drawEye(-r * 0.34, -r * 0.08, r * 0.1, color, t, false);
+        drawEye(-r * 0.08, -r * 0.08, r * 0.1, color, t, false);
+        ctx.strokeStyle = hexToRgba('#ffffff', 0.45);
+        for (let i = -1; i <= 2; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * r * 0.25, -r * 0.36);
+            ctx.lineTo(i * r * 0.25, r * 0.34);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawBossCrown(r, t, color) {
+        ctx.save();
+        ctx.strokeStyle = '#ffd166';
+        ctx.fillStyle = 'rgba(255, 209, 102, 0.18)';
+        ctx.lineWidth = 2;
+        const y = -r * 1.08;
+        path([-r * 0.6, y + r * 0.22, -r * 0.3, y - r * 0.12, 0, y + r * 0.2, r * 0.32, y - r * 0.12, r * 0.6, y + r * 0.22]);
+        ctx.strokeStyle = hexToRgba(color, 0.55);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * (1.32 + Math.sin(t * 3) * 0.04), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
     }
 
     function path(points) {
@@ -300,23 +633,51 @@
         ctx.stroke();
     }
 
+    function roundRect(x, y, w, h, radius, fill, stroke) {
+        const rr = Math.min(radius, Math.abs(w) / 2, Math.abs(h) / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.lineTo(x + w - rr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+        ctx.lineTo(x + w, y + h - rr);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+        ctx.lineTo(x + rr, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+        ctx.lineTo(x, y + rr);
+        ctx.quadraticCurveTo(x, y, x + rr, y);
+        ctx.closePath();
+        if (fill) ctx.fill();
+        if (stroke) ctx.stroke();
+    }
+
     function drawReasoningChains(r, t, color) {
         ctx.strokeStyle = hexToRgba(color, 0.65);
-        for (let i = 0; i < 6; i++) {
-            const a = t + i * Math.PI / 3;
+        for (let i = 0; i < 7; i++) {
+            const a = t * 0.8 + i * Math.PI / 3.5;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(a) * r * 0.7, Math.sin(a) * r * 0.7);
-            ctx.lineTo(Math.cos(a + 0.28) * r, Math.sin(a + 0.28) * r);
+            ctx.moveTo(Math.cos(a) * r * 0.58, Math.sin(a) * r * 0.58);
+            ctx.lineTo(Math.cos(a + 0.35) * r, Math.sin(a + 0.35) * r);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * r * 0.78, Math.sin(a) * r * 0.78, 2.4, 0, Math.PI * 2);
+            ctx.fillStyle = hexToRgba(color, 0.62);
+            ctx.fill();
         }
     }
 
     function drawAgentNodes(r, t) {
         ctx.fillStyle = '#68e8ff';
-        for (let i = 0; i < 4; i++) {
-            const a = t * 0.8 + i * Math.PI / 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.58)';
+        for (let i = 0; i < 5; i++) {
+            const a = t * 0.9 + i * Math.PI * 2 / 5;
+            const x = Math.cos(a) * r;
+            const y = Math.sin(a) * r;
             ctx.beginPath();
-            ctx.arc(Math.cos(a) * r, Math.sin(a) * r, 3, 0, Math.PI * 2);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x, y, 3.2, 0, Math.PI * 2);
             ctx.fill();
         }
     }
