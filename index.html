@@ -3,208 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Defender - Simplineers</title>
-    <!-- p5.js bibliotek -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    
-    <!-- Supabase konfiguration -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/env.js"></script>
-    <script src="js/supabase-config.js"></script>
-    
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0a0a1f;
-            font-family: Arial, sans-serif;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-        }
-        
-        canvas {
-            border: 2px solid #4fc3f7;
-            display: block;
-        }
-        
-        #highscore-form {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            border: 2px solid #4fc3f7;
-            padding: 30px;
-            border-radius: 10px;
-            z-index: 1000;
-            text-align: center;
-            min-width: 300px;
-        }
-        
-        #highscore-form h2 {
-            margin-top: 0;
-            color: #4fc3f7;
-        }
-        
-        #highscore-form input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #1a1a2e;
-            border: 1px solid #4fc3f7;
-            color: #fff;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        #highscore-form button {
-            background-color: #4fc3f7;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        #highscore-form button:hover {
-            background-color: #64b5f6;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        #score {
-            color: #4fc3f7;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-    </style>
+    <title>AI Defender 2026 - Simplineers</title>
+    <meta name="description" content="AI Defender 2026 är ett spelbart AI-kontrollrum om agentisk AI, multimodalitet, resonemang och governance.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/ai-defender-2026.css">
 </head>
 <body>
-    <div id="game-container">
-        <!-- Canvas kommer att skapas här av p5.js -->
-        
-        <!-- Highscore-formulär (dolt som standard) -->
-        <div id="highscore-form" class="hidden">
-            <h2>Game Over!</h2>
-            <p>Din poäng: <span id="score">0</span></p>
-            <form id="score-form">
-                <input type="text" id="name" placeholder="Ditt namn" required>
-                <input type="email" id="email" placeholder="Din e-post (valfritt)">
-                <input type="text" id="company" placeholder="Företag (valfritt)">
-                <input type="hidden" id="score-input" value="0">
-                <button type="submit">Spara poäng</button>
-                <button type="button" id="skip-btn">Hoppa över</button>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Debug Panel -->
-    <script src="js/debug.js"></script>
-    
-    <!-- Audio Manager -->
-    <script src="js/audio-manager.js"></script>
-    
-    <!-- Entity-filer -->
-    <script src="js/entities/player.js"></script>
-    <script src="js/entities/bullet.js"></script>
-    <script src="js/entities/enemies.js"></script>
-    <script src="js/entities/powerups.js"></script>
-    <script src="js/entities/neural-network-boss.js"></script>
-    
-    <!-- Effect-filer -->
-    <script src="js/effects/starfield.js"></script>
-    <script src="js/effects/particles.js"></script>
-    <script src="js/effects/explosion.js"></script>
-    
-    <!-- Scene-filer -->
-    <script src="js/scenes/bootScene.js"></script>
-    <script src="js/scenes/menuScene.js"></script>
-    <script src="js/scenes/gameScene.js"></script>
-    <script src="js/scenes/uiScene.js"></script>
-    
-    <!-- Huvudspelfil -->
-    <script src="js/game.js"></script>
-    
-    <!-- Highscore-hantering -->
-    <script src="js/highscore.js"></script>
-    
-    <!-- Marketing/Lead generation -->
-    <script src="js/leads.js"></script>
-    
-    <script>
-        // Hantera formuläret
-        document.getElementById('score-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const company = document.getElementById('company').value;
-            const score = parseInt(document.getElementById('score-input').value);
-            
-            // Spara till databas
-            if (window.saveScoreToDatabase) {
-                saveScoreToDatabase({
-                    name: name,
-                    score: score,
-                    email: email || null,
-                    company: company || null,
-                    created_at: new Date().toISOString()
-                }).then(() => {
-                    // Göm formuläret
-                    document.getElementById('highscore-form').classList.add('hidden');
-                    
-                    // Om parent window finns, meddela att spelet är klart
-                    if (window.parent && window.parent !== window) {
-                        window.parent.postMessage({
-                            type: 'gameComplete',
-                            score: score
-                        }, '*');
-                    }
-                    
-                    // Starta om spelet
-                    if (typeof resetGame === 'function') {
-                        resetGame();
-                    }
-                }).catch(error => {
-                    console.error('Error saving score:', error);
-                    alert('Det uppstod ett fel när poängen skulle sparas.');
-                });
-            }
-        });
-        
-        // Hoppa över-knapp
-        document.getElementById('skip-btn').addEventListener('click', function() {
-            document.getElementById('highscore-form').classList.add('hidden');
-            if (typeof resetGame === 'function') {
-                resetGame();
-            }
-        });
-        
-        // Lyssna på meddelanden från parent window
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'startGame') {
-                if (typeof startGame === 'function') {
-                    startGame();
-                }
-            }
-        });
-    </script>
+    <main id="game-shell" aria-label="AI Defender 2026">
+        <canvas id="game-canvas" width="800" height="600" aria-label="Spelyta för AI Defender 2026"></canvas>
+
+        <section id="start-overlay" class="overlay active" aria-live="polite">
+            <div class="panel panel-large">
+                <p class="eyebrow">SIMPLINEERS // AI OPERATIONS CENTER</p>
+                <h1>AI DEFENDER 2026</h1>
+                <p class="lead">Försvara ett modernt AI-ekosystem mot hallucinationer, verktygsmissbruk, agentisk överautonomi och bristande governance.</p>
+                <div class="mission-grid">
+                    <article>
+                        <strong>Agentisk AI</strong>
+                        <span>Fiender planerar, använder verktyg och sätter delmål.</span>
+                    </article>
+                    <article>
+                        <strong>Multimodalt hot</strong>
+                        <span>Växla strategi när text, bild, ljud och tabeller anfaller.</span>
+                    </article>
+                    <article>
+                        <strong>Governance-stack</strong>
+                        <span>Samla evals, guardrails och mänsklig kontroll.</span>
+                    </article>
+                </div>
+                <div class="button-row">
+                    <button id="start-button" class="primary">Starta AI Timeline</button>
+                    <button id="briefing-button" class="secondary">Visa briefing</button>
+                </div>
+                <p class="controls-hint">WASD/piltangenter: förflytta · Mellanslag: verifieringsskott · E: governance-puls · P: pausa</p>
+            </div>
+        </section>
+
+        <section id="briefing-overlay" class="overlay" aria-live="polite">
+            <div class="panel panel-large">
+                <p class="eyebrow">BRIEFING</p>
+                <h2>Dagens AI är inte bara en chatbot</h2>
+                <p>Du möter AI som resonerar, använder verktyg, kombinerar modaliteter och agerar över flera steg. Målet är inte att stoppa AI, utan att bygga <strong>säker, användbar och mänskligt styrd AI</strong>.</p>
+                <div class="timeline-preview">
+                    <span>Prompt Noise</span>
+                    <span>RAG Drift</span>
+                    <span>Multimodal Swarm</span>
+                    <span>Reasoning Titan</span>
+                    <span>Agent Swarm</span>
+                    <span>Jagged Frontier</span>
+                </div>
+                <button id="close-briefing-button" class="primary">Tillbaka</button>
+            </div>
+        </section>
+
+        <section id="debrief-overlay" class="overlay" aria-live="polite">
+            <div class="panel panel-large">
+                <p class="eyebrow">DEBRIEF // AI SAFETY SCORE</p>
+                <h2 id="debrief-title">Uppdrag slutfört</h2>
+                <div class="score-card">
+                    <div><span>Poäng</span><strong id="final-score">0</strong></div>
+                    <div><span>Nivå</span><strong id="final-level">1</strong></div>
+                    <div><span>Profil</span><strong id="final-profile">AI Guardian</strong></div>
+                </div>
+                <p id="debrief-copy">Du balanserade kapabilitet och ansvar. Fortsätt träna governance-stacken.</p>
+                <form id="score-form" class="score-form">
+                    <input id="player-name" name="name" type="text" maxlength="24" placeholder="Namn för topplistan" autocomplete="name">
+                    <input id="player-email" name="email" type="email" placeholder="E-post, frivilligt" autocomplete="email">
+                    <button type="submit" class="primary">Spara lokalt</button>
+                    <button type="button" id="play-again-button" class="secondary">Spela igen</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/ai-defender-2026.js" defer></script>
 </body>
 </html>
