@@ -3,32 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Defender | Retro Arkadspel av Simplineers AB</title>
-    <meta name="description" content="Spela AI Defender - ett 80-talsinspirerat rymdspel från Simplineers AB. Försvara galaxen och ta dig till toppen av highscore-listan!">
-    <meta name="keywords" content="retro spel, arkadspel, Simplineers AB, marknadsföringsspel, AI-spel">
-    <meta property="og:title" content="AI Defender | Retro Arkadspel">
-    <meta property="og:description" content="Spela AI Defender - ett 80-talsinspirerat rymdspel från Simplineers AB">
+    <title>AI Defender 2026 | Spelbar AI-utveckling av Simplineers AB</title>
+    <meta name="description" content="Spela AI Defender 2026 - ett modernt arkadspel om agentisk AI, multimodalitet, resonemang och AI-governance.">
+    <meta name="keywords" content="AI spel, agentisk AI, multimodal AI, AI governance, Simplineers AB, AI utbildning">
+    <meta property="og:title" content="AI Defender 2026 | Spelbar AI-utveckling">
+    <meta property="og:description" content="Spela AI Defender 2026 och upplev hur AI utvecklats från generativa modeller till agentiska system">
     <meta property="og:image" content="url-to-your-game-screenshot.jpg">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Ladda miljövariabler från Vercel-produktionen -->
-    <script src="/env-config.js"></script>
-    <!-- Ladda lokala variabler om de finns (kommer ignoreras i produktion) -->
-    <script>
-      try { 
-        // Kör detta i en try-block för att undvika fel om filen saknas
-        document.write('<script src="/env.js"><\/script>');
-      } catch(e) { console.log("Ingen lokal env.js hittad, troligen produktionsmiljö"); }
-    </script>
-    <!-- Skapa grunder för Supabase om det behövs -->
-    <script>
-      // Debug för att se om variablerna finns
-      console.log("Debug: Supabase-variabler", {
-        fromEnv: !!window.ENV_SUPABASE_URL,
-        fromVercel: !!window.SUPABASE_URL
-      });
-    </script>
-    <script src="/js/supabase-config.js"></script>
+    <!-- AI Defender 2026 kör spelet och lead-fallback lokalt utan hårt beroende av extern databas. -->
     <!-- Importera retro-pixeltypsnitt -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -388,12 +370,6 @@
             #game-iframe {
                 width: 100%;
                 height: 300px; /* Mindre höjd på mobil */
-            }
-            
-            #highscore-form-container {
-                width: 90%;
-                max-width: 320px;
-                padding: 15px;
             }
             
             .btn {
@@ -921,17 +897,17 @@
 <body>
     <header>
         <div class="logo-container">
-            <div class="company-brand">UTVECKLAD MED CLAUDE 3.7 | EN SIMPLINEERS PRODUKTION</div>
-            <h1>AI DEFENDER</h1>
-            <p class="tagline">Försvara galaxen mot fientliga AI:er</p>
+            <div class="company-brand">DAGENS VERSION // AGENTISK AI · MULTIMODALITET · GOVERNANCE</div>
+            <h1>AI DEFENDER 2026</h1>
+            <p class="tagline">Bygg säker AI medan kapabiliteterna accelererar</p>
         </div>
     </header>
 
     <main>
         <div class="container">
             <section id="intro-section">
-                <h2>UTMANA AI:N</h2>
-                <p>AI Defender är ett specialutvecklat retrospel skapat med Claude 3.7, en av de mest avancerade AI-modellerna. Navigera genom rymden, besegra fientliga AI-fartyg och utveckla dina kunskaper om AI:s potential!</p>
+                <h2>AI-UTVECKLINGEN SOM SPEL</h2>
+                <p>AI Defender 2026 översätter det senaste årets AI-skifte till spelmekanik: multimodala attacker, resonerande modeller, agentiska verktygsanrop och behovet av tydlig AI-governance. Målet är inte att stoppa AI, utan att göra den säker, användbar och mänskligt styrd.</p>
                 <div class="cta-buttons">
                     <button id="start-game-btn" class="btn btn-primary">SPELA NU</button>
                     <a href="https://simplineers.se/ai-utbildningar" class="btn" id="learn-more-btn">VÅRA AI-KURSER</a>
@@ -955,9 +931,10 @@
                     <div id="game-controls" class="controls-below">
                         <h3>Kontroller</h3>
                         <ul>
-                            <li><strong>WASD:</strong> Förflytta skeppet</li>
-                            <li><strong>Mellanslag:</strong> Skjut</li>
-                            <li><strong>P:</strong> Pausa spelet</li>
+                            <li><strong>WASD/Pilar:</strong> Förflytta kontrollskeppet</li>
+                            <li><strong>Mellanslag:</strong> Skjut verifieringspulser</li>
+                            <li><strong>E:</strong> Aktivera governance-puls</li>
+                            <li><strong>P:</strong> Pausa uppdraget</li>
                         </ul>
                         <button id="back-to-menu-btn" class="btn">Tillbaka till meny</button>
                     </div>
@@ -986,21 +963,21 @@
             <!-- Flyttat övrigt innehåll under spelsektionen -->
             <div id="content-below">
                 <section id="cta-section">
-                    <h2>BLI EN AI-EXPERT</h2>
-                    <p>Bli en del av AI-revolutionen! Vi på Simplineers AB erbjuder specialiserade utbildningar där du lär dig bemästra AI-teknik som skapade detta spel.</p>
+                    <h2>BYGG ER AI-GOVERNANCE</h2>
+                    <p>AI-verktyg har gått från enskilda chattflöden till multimodala och agentiska arbetssätt. Simplineers hjälper team att förstå möjligheterna, riskerna och hur ni inför AI med tydliga processer, evals och mänsklig kontroll.</p>
                     
                     <div class="service-grid">
                         <div class="service-item">
-                            <h3>Introduktion till AI</h3>
-                            <p>Perfekt för nybörjare som vill förstå grunderna i maskininlärning och AI</p>
+                            <h3>AI Strategy & Readiness</h3>
+                            <p>För ledare och team som vill förstå AI-landskapet, affärsnytta och risker innan implementation</p>
                         </div>
                         <div class="service-item">
-                            <h3>AI Prompt Engineering</h3>
-                            <p>Lär dig att effektivt kommunicera med AI-modeller som Claude och GPT</p>
+                            <h3>Agentisk AI i praktiken</h3>
+                            <p>Lär er designa arbetsflöden där AI använder verktyg, data och mänskliga beslut på ett säkert sätt</p>
                         </div>
                         <div class="service-item">
-                            <h3>Avancerad AI-utveckling</h3>
-                            <p>Bygg egna AI-applikationer och integrera intelligenta system i din verksamhet</p>
+                            <h3>AI Governance & Evals</h3>
+                            <p>Bygg mätbara kontroller, testsviter, policyer och uppföljning för AI i produktion</p>
                         </div>
                     </div>
                     
@@ -1012,38 +989,24 @@
                             <input type="tel" id="lead-phone" placeholder="Ditt telefonnummer (frivilligt)">
                             <input type="text" id="lead-company" placeholder="Företag (frivilligt)">
                             <select id="lead-interest">
-                                <option value="">Vilken kurs intresserar dig?</option>
-                                <option value="intro">Introduktion till AI</option>
-                                <option value="prompt">AI Prompt Engineering</option>
-                                <option value="advanced">Avancerad AI-utveckling</option>
+                                <option value="">Vilket område är mest relevant?</option>
+                                <option value="strategy">AI Strategy & Readiness</option>
+                                <option value="agents">Agentisk AI i praktiken</option>
+                                <option value="governance">AI Governance & Evals</option>
                                 <option value="all">Alla kurser</option>
                             </select>
-                            <input type="hidden" id="campaign-ref" name="campaign-ref" value="AI-DEFENDER-2024">
+                            <input type="hidden" id="campaign-ref" name="campaign-ref" value="AI-DEFENDER-2026">
                             <button type="submit" class="btn btn-primary">ANMÄL INTRESSE</button>
                         </form>
                     </div>
                 </section>
             </div>
         </div>
-
-        <!-- Formulär visas vid game over -->
-        <div id="highscore-form-container" style="display: none;">
-            <h2>Game Over!</h2>
-            <p>Din poäng: <span id="final-score-display" style="font-size: 24px; font-weight: bold; color: #4fc3f7;">0</span></p>
-            <form id="highscore-form">
-                <input type="text" id="name-input" placeholder="Ditt namn" required>
-                <input type="email" id="email-input" placeholder="Din e-post (valfritt)">
-                <input type="hidden" id="score-input" name="score" value="0">
-                <input type="hidden" id="campaign-ref" name="campaign-ref" value="AI-DEFENDER-2024">
-                <button type="submit" class="btn">Spara resultat</button>
-            </form>
-            <button id="play-again-btn" class="btn" style="margin-top: 15px;">Spela igen</button>
-        </div>
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 AI Defender - Utvecklad med Claude 3.7 av <a href="https://simplineers.se" target="_blank">Simplineers AB</a></p>
+            <p>&copy; 2026 AI Defender - Dagens version av <a href="https://simplineers.se" target="_blank">Simplineers AB</a></p>
             <p class="footer-tagline">Vi utbildar nästa generations AI-experter</p>
             <div class="social-links">
                 <a href="#" class="social-link">LinkedIn</a>
@@ -1054,466 +1017,68 @@
     </footer>
 
     <!-- JavaScript-filer -->
-    <script src="js/supabase-config.js"></script>
-    <script src="js/highscore.js" defer></script>
     <script src="js/leads.js" defer></script>
-    
-    <!-- Behåll resten av JavaScript-koden oförändrad -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Kontrollera om funktionerna redan har definierats i external scripts
-            if (typeof saveScoreToSupabase !== 'function') {
-                console.warn('saveScoreToSupabase was not defined in external scripts, using fallback');
-                
-                // Fallback-implementation
-                window.saveScoreToSupabase = function(name, email, score, campaignRef) {
-                    console.log('Using fallback saveScoreToSupabase function');
-                    
-                    if (typeof supabase === 'undefined') {
-                        console.error('Supabase client is not defined!');
-                        return Promise.reject(new Error('Supabase client is not defined'));
-                    }
-                    
-                    return supabase
-                        .from('highscores')
-                        .insert([{ name, email, score: parseInt(score, 10), campaignRef }])
-                        .then(response => {
-                            if (response.error) throw response.error;
-                            return response.data;
-                        });
-                };
-            }
-            
-            if (typeof loadHighscores !== 'function') {
-                console.warn('loadHighscores was not defined in external scripts, using fallback');
-                
-                // Fallback-implementation
-                window.loadHighscores = function() {
-                    console.log('Using fallback loadHighscores function');
-                    
-                    if (typeof supabase === 'undefined') {
-                        console.error('Supabase client is not defined!');
-                        return Promise.reject(new Error('Supabase client is not defined'));
-                    }
-                    
-                    return supabase
-                        .from('highscores')
-                        .select('*')
-                        .order('score', { ascending: false })
-                        .limit(10)
-                        .then(response => {
-                            if (response.error) {
-                                console.error('Error loading highscores:', response.error);
-                                return;
-                            }
-                            
-                            // Visa highscores i tabellen
-                            const highscoreList = document.getElementById('highscore-list');
-                            highscoreList.innerHTML = '';
-                            
-                            response.data.forEach((score, index) => {
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                                    <td>${index + 1}</td>
-                                    <td>${score.name}</td>
-                                    <td>${score.score}</td>
-                                `;
-                                highscoreList.appendChild(row);
-                            });
-                        });
-                };
-            }
-            
-            // Ladda in spelet som ett separat skript när användaren klickar på "SPELA NU"
-            document.getElementById('start-game-btn').addEventListener('click', function() {
-                // Visa spelsektionen
-                document.getElementById('intro-section').classList.add('hidden');
-                document.getElementById('game-section').classList.remove('hidden');
-                
-                // Ställ in specifika dimensioner för spelet via URL-parametrar
-                const gameIframe = document.getElementById('game-iframe');
-                
-                // Befintlig src med tilläggsparametrar för dimensioner
-                const currentSrc = gameIframe.src.split('?')[0]; // Ta bort eventuella befintliga parametrar
-                gameIframe.src = `${currentSrc}?width=800&height=600&scale=1`;
-                
-                // Fokusera på iframe automatiskt
-                setTimeout(function() {
-                    gameIframe.focus();
-                }, 100);
-            });
-            
-            // Ladda highscores direkt
-            loadHighscores();
+            const startButton = document.getElementById('start-game-btn');
+            const backButton = document.getElementById('back-to-menu-btn');
+            const introSection = document.getElementById('intro-section');
+            const gameSection = document.getElementById('game-section');
+            const gameIframe = document.getElementById('game-iframe');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const highscoreList = document.getElementById('highscore-list');
 
-            document.getElementById('highscore-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('Highscore form submitted'); // Debug
-                
-                const name = document.getElementById('name-input').value;
-                const email = document.getElementById('email-input').value || null; // Om e-post saknas sätt som null
-                const score = parseInt(document.getElementById('score-input').value, 10);
-                
-                console.log('Saving score:', {name, email, score}); // Debug
-                
-                // Kontrollera att saveScoreToSupabase är definierad
-                if (typeof saveScoreToSupabase !== 'function') {
-                    console.error('saveScoreToSupabase is not defined!');
-                    showRetroError('Ett tekniskt fel uppstod. Funktionen för att spara poäng saknas.');
+            function renderLocalScores() {
+                const scores = JSON.parse(localStorage.getItem('ai-defender-2026-scores') || '[]');
+                highscoreList.innerHTML = '';
+                if (!scores.length) {
+                    highscoreList.innerHTML = '<tr><td colspan="3">Spela ett uppdrag för att skapa första resultatet.</td></tr>';
                     return;
                 }
-                
-                try {
-                    // Visa laddningsindikator
-                    const submitButton = this.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.textContent = 'Sparar...';
-                    
-                    // Anropa Supabase direkt här temporärt för felsökning om det behövs
-                    // Detta är en fallback om den externa funktionen inte fungerar
-                    const temporarySave = async () => {
-                        try {
-                            // Bekräfta att supabase variabeln existerar
-                            if (typeof supabase === 'undefined') {
-                                throw new Error('Supabase client is not defined');
-                            }
-                            
-                            const { data, error } = await supabase
-                                .from('highscores')
-                                .insert([{ 
-                                    name, 
-                                    email, 
-                                    score,
-                                    campaign_ref: document.getElementById('campaign-ref').value
-                                }]);
-                                
-                            if (error) throw error;
-                            return data;
-                        } catch (error) {
-                            console.error('Supabase error:', error);
-                            throw error;
-                        }
-                    };
-                    
-                    // Använd den ursprungliga funktionen men med bättre felhantering
-                    saveScoreToSupabase(name, email, score, document.getElementById('campaign-ref').value)
-                        .then(() => {
-                            console.log('Score saved successfully');
-                            // Visa highscore-listan och dölj formuläret
-                            document.getElementById('highscore-form-container').style.display = 'none';
-                            document.getElementById('highscore-section').classList.remove('hidden');
-                            // Uppdatera topplistan
-                            loadHighscores();
-                        })
-                        .catch(error => {
-                            console.error('Error saving score:', error);
-                            // Testa fallback-metoden
-                            console.log('Attempting fallback save method...');
-                            return temporarySave();
-                        })
-                        .then(data => {
-                            if (data) {
-                                console.log('Score saved with fallback method');
-                                document.getElementById('highscore-form-container').style.display = 'none';
-                                document.getElementById('highscore-section').classList.remove('hidden');
-                                loadHighscores();
-                            }
-                        })
-                        .catch(finalError => {
-                            console.error('All save attempts failed:', finalError);
-                            showRetroError('Ett fel uppstod när ditt resultat skulle sparas. Försök igen senare.');
-                        })
-                        .finally(() => {
-                            // Återställ knappen
-                            submitButton.disabled = false;
-                            submitButton.textContent = 'Spara resultat';
-                        });
-                } catch (e) {
-                    console.error('Unexpected error in form submission:', e);
-                    showRetroError('Ett oväntat fel inträffade. Försök igen senare.');
-                }
-            });
+                scores.slice(0, 10).forEach(function(score, index) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td>' + (index + 1) + '</td><td>' + score.name + '</td><td>' + score.score + '</td>';
+                    highscoreList.appendChild(row);
+                });
+            }
 
-            // Fixa event-lyssnaren för att hantera både 'gameOver' och 'score' meddelanden
-            window.addEventListener('message', function(event) {
-                // Logga alla inkommande meddelanden från spelet för felsökning
-                console.log('Mottog spelmeddelande:', event.data);
-                
-                // Kontrollera att meddelandet är från spelet och av rätt typ
-                // Hantera både 'gameOver' och 'score' för bakåtkompatibilitet
-                if (event.data && 
-                    ((event.data.type === 'gameOver' && event.data.score !== undefined) || 
-                     (event.data.type === 'score' && event.data.score !== undefined))) {
-                    
-                    // Få poängen från meddelandet, oavsett meddelande-typ
-                    const score = event.data.score;
-                    console.log('Spelet avslutades med poäng:', score);
-                    
-                    // Visa highscore-formuläret
-                    showHighscoreForm(score);
-                }
-            });
-
-            // Ersätt den befintliga keydown-lyssnaren med denna mer robusta version
-            window.addEventListener('keydown', function(e) {
-                // Kontrollera om vi befinner oss i ett input-fält
-                const isInputActive = document.activeElement.tagName === 'INPUT' || 
-                                     document.activeElement.tagName === 'TEXTAREA';
-                
-                // Förhindra mellanslag från att scrolla sidan, men tillåt det i input-fält
-                if ((e.key === ' ' || e.code === 'Space') && !isInputActive) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-
-            // Lägg till denna kod i DOMContentLoaded-lyssnaren
-            document.getElementById('back-to-menu-btn').addEventListener('click', function() {
-                // Dölj spelsektionen
-                document.getElementById('game-section').classList.add('hidden');
-                
-                // Visa introduktionssektionen
-                document.getElementById('intro-section').classList.remove('hidden');
-                
-                // Återställ spelcontainern om den har dolts vid game over
-                document.getElementById('game-container').style.display = 'block';
-            });
-
-            // Lägg till javascript för knappen
-            document.getElementById('play-again-btn').addEventListener('click', function() {
-                // Dölj highscore-formuläret
-                document.getElementById('highscore-form-container').style.display = 'none';
-                
-                // Visa spelcontainern igen
-                document.getElementById('game-container').style.display = 'block';
-                
-                // Ladda om iframe för att starta om spelet
-                const gameIframe = document.getElementById('game-iframe');
-                gameIframe.src = gameIframe.src;
-                
-                // Fokusera på iframe
+            function startGame() {
+                introSection.classList.add('hidden');
+                gameSection.classList.remove('hidden');
+                loadingIndicator.style.display = 'flex';
+                const cleanSrc = gameIframe.getAttribute('src').split('?')[0];
+                gameIframe.src = cleanSrc + '?v=2026&ts=' + Date.now();
                 setTimeout(function() {
+                    loadingIndicator.style.display = 'none';
                     gameIframe.focus();
-                }, 100);
-            });
-
-            document.getElementById('game-iframe').addEventListener('load', function() {
-                try {
-                    const iframeWindow = this.contentWindow;
-                    const iframeDocument = iframeWindow.document;
-                    
-                    // Skapa ett script-element
-                    const script = iframeDocument.createElement('script');
-                    script.textContent = `
-                        // Förhindra att piltangenter används
-                        window.addEventListener('keydown', function(e) {
-                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
-                                e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return false;
-                            }
-                        }, true);
-                        console.log('Arrow keys disabled in game');
-                    `;
-                    
-                    // Lägg till skriptet i iframe:ens head
-                    iframeDocument.head.appendChild(script);
-                } catch (e) {
-                    console.error('Could not inject script into iframe:', e);
-                }
-                
-                // Dölj laddningsindikatorn oavsett
-                document.getElementById('loading-indicator').style.display = 'none';
-
-                // Lägg till diagnoskod
-                console.log('Iframe dimensioner:', {
-                    offsetWidth: this.offsetWidth,
-                    offsetHeight: this.offsetHeight,
-                    clientWidth: this.clientWidth,
-                    clientHeight: this.clientHeight,
-                    scrollWidth: this.scrollWidth,
-                    scrollHeight: this.scrollHeight
-                });
-                
-                // Försök att få spelets inre dimensioner
-                try {
-                    const gameWindow = this.contentWindow;
-                    const canvas = gameWindow.document.querySelector('canvas');
-                    if (canvas) {
-                        console.log('Spelkanvas dimensioner:', {
-                            width: canvas.width,
-                            height: canvas.height,
-                            style: canvas.style.cssText
-                        });
-                    }
-                } catch (e) {
-                    console.warn('Kunde inte läsa spelkanvasen:', e);
-                }
-            });
-        });
-
-        // Skapa en funktion för stiliserade felmeddelanden istället för alert()
-        function showRetroError(message) {
-            const errorBox = document.createElement('div');
-            errorBox.className = 'retro-error';
-            errorBox.innerHTML = `
-                <h3>ERROR!</h3>
-                <p>${message}</p>
-                <button class="btn">OK</button>
-            `;
-            
-            document.body.appendChild(errorBox);
-            
-            // Stäng felmeddelandet när man klickar på OK
-            errorBox.querySelector('button').addEventListener('click', function() {
-                document.body.removeChild(errorBox);
-            });
-            
-            // CSS för felmeddelandet (lägg till i style-taggen)
-            const style = document.createElement('style');
-            style.textContent = `
-                .retro-error {
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background-color: #111133;
-                    border: 4px solid #FF7F50;
-                    padding: 20px;
-                    text-align: center;
-                    z-index: 2000;
-                    box-shadow: 
-                        0 0 20px rgba(0, 0, 0, 0.7),
-                        0 0 40px rgba(127, 212, 255, 0.3);
-                    animation: blink 0.5s infinite;
-                }
-                
-                .retro-error h3 {
-                    color: #FF7F50;
-                    margin-top: 0;
-                    text-shadow: 2px 2px 0 #000;
-                }
-                
-                .retro-error p {
-                    color: #FFB347;
-                    margin-bottom: 20px;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        // Funktion för att visa highscore-formuläret
-        function showHighscoreForm(score) {
-            // Se om vi redan har ett formulär
-            let formModal = document.getElementById('highscore-modal');
-            
-            // Om formuläret inte finns, skapa det
-            if (!formModal) {
-                formModal = document.createElement('div');
-                formModal.id = 'highscore-modal';
-                formModal.className = 'modal';
-                formModal.innerHTML = `
-                    <div class="modal-content">
-                        <h2>GAME OVER</h2>
-                        <p>Din poäng: <span class="highlight">${score}</span></p>
-                        
-                        <form id="score-form">
-                            <div class="form-group">
-                                <label for="player-name">Namn*</label>
-                                <input type="text" id="player-name" name="player-name" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="player-email">E-post*</label>
-                                <input type="email" id="player-email" name="player-email" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="player-company">Företag (frivilligt)</label>
-                                <input type="text" id="player-company" name="player-company">
-                            </div>
-                            
-                            <input type="hidden" id="player-score" name="player-score" value="${score}">
-                            
-                            <div class="form-group">
-                                <input type="checkbox" id="player-consent" name="player-consent" checked>
-                                <label for="player-consent">Jag godkänner att ni kontaktar mig</label>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary">Spara poäng</button>
-                        </form>
-                        
-                        <button class="btn close-btn">Stäng</button>
-                    </div>
-                `;
-                
-                document.body.appendChild(formModal);
-                
-                // Stäng modal när man klickar på stäng-knappen
-                formModal.querySelector('.close-btn').addEventListener('click', function() {
-                    formModal.style.display = 'none';
-                });
-                
-                // Aktivera formuläret genom att kalla på highscore.js-funktion
-                setupHighscoreForm();
-            } else {
-                // Om formuläret redan finns, uppdatera poängen
-                formModal.querySelector('.highlight').textContent = score;
-                formModal.querySelector('#player-score').value = score;
+                    gameIframe.contentWindow.postMessage({ type: 'startGame' }, '*');
+                }, 450);
             }
-            
-            // Visa formuläret
-            formModal.style.display = 'block';
-        }
 
-        document.getElementById('lead-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('lead-name').value;
-            const email = document.getElementById('lead-email').value;
-            const phone = document.getElementById('lead-phone').value;
-            const company = document.getElementById('lead-company').value;
-            const interest = document.getElementById('lead-interest').value;
-            
-            try {
-                // ULTRA-FÖRENKLAD LÖSNING - Spara direkt till highscores-tabellen
-                console.log('Sparar lead direkt till highscores-tabellen');
-                
-                // Skapa ett minimalt dataset - bara använd fält som vi vet finns
-                const data = {
-                    name: name || 'Anonym',
-                    email: email || 'no-email@example.com',
-                    score: -999 // Speciell markör för att visa att detta är ett lead, inte en highscore
-                };
-                
-                // Lägg bara till company-fältet om det finns ett värde
-                if (company && company.trim() !== '') {
-                    data.company = company;
+            startButton.addEventListener('click', startGame);
+            backButton.addEventListener('click', function() {
+                gameSection.classList.add('hidden');
+                introSection.classList.remove('hidden');
+            });
+
+            gameIframe.addEventListener('load', function() {
+                loadingIndicator.style.display = 'none';
+            });
+
+            window.addEventListener('message', function(event) {
+                if (!event.data) return;
+                if (event.data.type === 'gameComplete' || event.data.type === 'scoreSaved') {
+                    renderLocalScores();
                 }
-                
-                console.log('Slutgiltig data som skickas:', data);
-                
-                // Gör det faktiska anropet till Supabase
-                const { error } = await supabase
-                    .from('highscores')  // Använd highscores-tabellen eftersom vi vet att den fungerar
-                    .insert([data]);
-                
-                if (error) {
-                    console.error('Detaljerat fel från Supabase:', error);
-                    throw error;
-                }
-                
-                // Om vi kommer hit har sparandet lyckats
-                console.log('Leads-data sparades framgångsrikt i highscores-tabellen');
-                alert('Tack! Vi kontaktar dig snart.');
-                this.reset();
-                
-            } catch (error) {
-                console.error('Fel vid sparande av kontaktuppgifter:', error);
-                alert('Ett fel uppstod när din förfrågan skulle skickas. Försök igen senare.');
-            }
+            });
+
+            window.addEventListener('keydown', function(event) {
+                const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+                if ((event.key === ' ' || event.code === 'Space') && !isInput) event.preventDefault();
+            });
+
+            renderLocalScores();
         });
     </script>
 </body>
-</html> 
+</html>
